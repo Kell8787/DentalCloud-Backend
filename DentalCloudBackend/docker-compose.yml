@@ -34,9 +34,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: Deathofadream
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: true
-    # Puedes usar esta línea si ya tenías configuraciones específicas de tu proyecto
-    # env_file:
-    #   - .env
+
+      JWT_SECRET: "DxrhaPyjpbGBNAaAB56GG3mEk/EC5gN71DKgYX6ZTAPX7p1W7aASiH81gV9sQWD4btTfUOqu3jWoUMok4SPWZA=="
+      JWT_EXPIRATION_MS: "1296000000"
 
 volumes:
   postgres_data:

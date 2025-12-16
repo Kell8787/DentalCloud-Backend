@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -19,8 +20,10 @@ public class UserResponseDTO {
     private String secondName;
     private String lastName;
     private String secondLastName;
+    private String gender;
     private String dui;
-    private String birthDate;
+    private LocalDate birthDate;
     private String email;
     private String phoneNumber;
+    private String role;
 }
