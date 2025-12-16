@@ -1,0 +1,43 @@
+services:
+  postgres_db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: DentalAdmin
+      POSTGRES_PASSWORD: Deathofadream
+      POSTGRES_DB: DentalCloudDB
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U DentalAdmin -d DentalCloudDB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dentalcloud_backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/DentalCloudDB
+      SPRING_DATASOURCE_USERNAME: DentalAdmin
+      SPRING_DATASOURCE_PASSWORD: Deathofadream
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+    # Puedes usar esta línea si ya tenías configuraciones específicas de tu proyecto
+    # env_file:
+    #   - .env
+
+volumes:
+  postgres_data:
+    name: postgres_data
