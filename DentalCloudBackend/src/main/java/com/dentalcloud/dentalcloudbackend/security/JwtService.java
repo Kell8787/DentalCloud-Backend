@@ -27,7 +27,7 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.exptime:1296000000}") // por defecto 24h en ms
+    @Value("${jwt.expiration-ms:1296000000}") // por defecto 24h en ms
     private long expirationMs;
 
     /*
