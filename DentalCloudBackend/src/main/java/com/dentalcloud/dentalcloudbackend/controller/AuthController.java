@@ -2,7 +2,7 @@ package com.dentalcloud.dentalcloudbackend.controller;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthRequestDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.RegisterRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.RegisterPatientRequestDTO;
 import com.dentalcloud.dentalcloudbackend.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ public class AuthController {
      * Retorna un mensaje de éxito si el registro es exitoso.
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody @Valid RegisterRequestDTO request) {
+    public ResponseEntity<?> register(@RequestBody @Valid RegisterPatientRequestDTO request) {
         log.info("Registro iniciado para email: {}", request.getEmail());
         String result = authService.register(request);
         return ResponseEntity.ok().body(Map.of("message", result));

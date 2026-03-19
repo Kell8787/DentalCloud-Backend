@@ -20,7 +20,8 @@ public class UserResponseDTO {
     private String secondName;
     private String lastName;
     private String secondLastName;
-    private String gender;
+    private String direccion;
+    private String genero;
     private String dui;
     private LocalDate birthDate;
     private String email;

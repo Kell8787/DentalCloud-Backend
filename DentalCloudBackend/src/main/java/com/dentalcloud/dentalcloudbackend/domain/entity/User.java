@@ -1,5 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.domain.entity;
 
+import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,7 +35,12 @@ public class User {
     private String secondLastName;
 
     @NotBlank
-    private String gender;
+    @Column(nullable = false)
+    private String direccion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Genero genero;
 
     @Column(unique = true, nullable = false, length = 10)
     private String dui;
