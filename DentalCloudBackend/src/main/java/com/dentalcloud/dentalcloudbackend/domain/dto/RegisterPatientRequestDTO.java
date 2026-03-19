@@ -1,5 +1,7 @@
 package com.dentalcloud.dentalcloudbackend.domain.dto;
 
+import com.dentalcloud.dentalcloudbackend.domain.entity.InformacionMedica;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Parentesco;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,7 +11,7 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class RegisterRequestDTO {
+public class RegisterPatientRequestDTO {
     @NotBlank
     private String firstName;
 
@@ -25,7 +27,7 @@ public class RegisterRequestDTO {
     private LocalDate birthDate;
 
     @NotBlank
-    private String gender;
+    private String genero;
 
     @NotBlank
     private String dui;
@@ -42,4 +44,11 @@ public class RegisterRequestDTO {
 
     @NotBlank
     private String confirmPassword;
+
+    @NotBlank
+    private String direccion;
+
+    private ContactoEmergenciaDTO contactoEmergencia;
+
+    private InformacionMedicaDTO informacionMedica;
 }

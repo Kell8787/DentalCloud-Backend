@@ -2,22 +2,28 @@ package com.dentalcloud.dentalcloudbackend.services;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthResponseDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.RegisterRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.RegisterPatientRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.UserResponseDTO;
+import com.dentalcloud.dentalcloudbackend.domain.entity.ContactoEmergencia;
+import com.dentalcloud.dentalcloudbackend.domain.entity.InformacionMedica;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Parentesco;
+import com.dentalcloud.dentalcloudbackend.repositories.ContactoEmergenciaRepository;
+import com.dentalcloud.dentalcloudbackend.repositories.InformacionMedicaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
 import com.dentalcloud.dentalcloudbackend.security.JwtService;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.util.Collections;
 
 /*
     Servicio para manejar la autenticación y registro de usuarios.
@@ -31,14 +37,21 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authManager;
+    private final ContactoEmergenciaRepository contactoEmergenciaRepository;
+    private final InformacionMedicaRepository informacionMedicaRepository;
 
     /*
         Registra un nuevo usuario en el sistema.
      */
-    public String register(RegisterRequestDTO request) {
+    @Transactional
+    public String register(RegisterPatientRequestDTO request) {
         // Verificar si el usuario ya existe
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new EntityExistsException("El email ya está registrado");
+        }
+
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Las contraseñas no coinciden");
         }
 
         // Crear nuevo usuario
@@ -47,16 +60,37 @@ public class AuthService {
                 .secondName(request.getSecondName())
                 .lastName(request.getLastName())
                 .secondLastName(request.getSecondLastName())
-                .gender(request.getGender())
+                .genero(Genero.valueOf(request.getGenero().toUpperCase()))
                 .dui(request.getDui())
                 .birthDate(request.getBirthDate())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .phoneNumber(request.getPhoneNumber())
                 .role("CUSTOMER")
+                .direccion(request.getDireccion())
                 .build();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        ContactoEmergencia contactoEmergencia = ContactoEmergencia.builder()
+                .user(savedUser)
+                .nombreCompleto(request.getContactoEmergencia().getNombreCompleto())
+                .email(request.getContactoEmergencia().getEmail())
+                .phoneNumber(request.getContactoEmergencia().getPhoneNumber())
+                .parentesco(request.getContactoEmergencia().getParentesco())
+                .build();
+
+        contactoEmergenciaRepository.save(contactoEmergencia);
+
+        InformacionMedica informacionMedica = InformacionMedica.builder()
+                .user(savedUser)
+                .alergias(request.getInformacionMedica().getAlergias())
+                .medicamentos(request.getInformacionMedica().getMedicamentos())
+                .antecedentesMedicos(request.getInformacionMedica().getAntecedentesMedicos())
+                .build();
+
+        informacionMedicaRepository.save(informacionMedica);
+
         return "Usuario registrado exitosamente";
     }
 
@@ -98,12 +132,9 @@ public class AuthService {
                 .secondName(user.getSecondName())
                 .lastName(user.getLastName())
                 .secondLastName(user.getSecondLastName())
-                .gender(user.getGender())
+                .genero(String.valueOf(user.getGenero()))
                 .dui(user.getDui())
-                .email(user.getEmail())
                 .role(user.getRole())
-                .phoneNumber(user.getPhoneNumber())
-                .birthDate((user.getBirthDate()))
                 .build();
 
         return AuthResponseDTO.builder()
