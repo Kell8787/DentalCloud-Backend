@@ -1,0 +1,452 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: DentalCloud - Inventario
+meta:
+  id: wrk_1495937a5f4348a19bfa33c82a92493d
+  created: 1774398371033
+  modified: 1774398371033
+  description: ""
+collection:
+  - name: Autenticación
+    meta:
+      id: fld_ba0377c3ab65463c8d827ef407418d63
+      created: 1774398371035
+      modified: 1774398371035
+      sortKey: -2000
+      description: Obtén JWT para usar el módulo de inventario.
+    children:
+      - url: "{{ _.base_url }}/api/auth/login"
+        name: Login (obtener JWT)
+        meta:
+          id: req_7aa26b5272b34b089f82563cf17e6dae
+          created: 1774398371036
+          modified: 1774398371036
+          isPrivate: false
+          description: ""
+          sortKey: -2000
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "{{ _.login_email }}",
+              "password": "{{ _.login_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: none
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: http://localhost:8080/api/auth/register
+        name: Register
+        meta:
+          id: req_4ce5faa389e24b1196e42555a43859c1
+          created: 1774398438174
+          modified: 1774398452880
+          isPrivate: false
+          description: ""
+          sortKey: -2100
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"firstName": "Rodrigo",
+            	"secondName": "Antonio",
+            	"lastName": "Iraheta",
+            	"secondLastName": "Lopez",
+            	"genero": "MASCULINO",
+            	"dui": "12345678-9",
+            	"birthDate": "11-02-2003",
+            	"email": "rodri@test.com",
+            	"password": "123456",
+            	"confirmPassword": "123456",
+            	"phoneNumber": "7777-7777",
+            	"direccion": "San Salvador",
+            	"contactoEmergencia": {
+            		"nombreCompleto": "Maria Lopez",
+            		"email": "maria@test.com",
+            		"phoneNumber": "8888-8888",
+            		"parentesco": "MADRE"
+            	},
+            	"informacionMedica": {
+            		"alergias": [
+            			"Penicilina",
+            			"Polvo"
+            		],
+            		"medicamentos": [
+            			"Ibuprofeno"
+            		],
+            		"antecedentesMedicos": "Asma leve"
+            	}
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.0.2
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Inventario
+    meta:
+      id: fld_69afc41edc3a43c8a19f3f7c2ec96c19
+      created: 1774398371037
+      modified: 1774398371037
+      sortKey: -1000
+      description: Inventario con cantidad en producto y operaciones de compra/venta
+    children:
+      - url: "{{ _.base_url }}/api/inventory"
+        name: Listar todos los productos
+        meta:
+          id: req_48945edbb3b149cfb6e7213d30e34be8
+          created: 1774398371037
+          modified: 1774398371037
+          isPrivate: false
+          description: ""
+          sortKey: -1000
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory?categoryName=otros"
+        name: Buscar productos por nombre de categoría (query)
+        meta:
+          id: req_52b29b2e0eaa40878e74a9dd894d5c7d
+          created: 1774398371038
+          modified: 1774400127676
+          isPrivate: false
+          description: ""
+          sortKey: -999.5
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory?name=c"
+        name: Buscar productos por fragmento de nombre (query)
+        meta:
+          id: req_711887e0e5534d6e86aa8874afbe5187
+          created: 1774398371038
+          modified: 1774400168872
+          isPrivate: false
+          description: ""
+          sortKey: -999.4
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}"
+        name: Detalle producto por ID
+        meta:
+          id: req_dad4393c9bef4aef896814aae11a17a4
+          created: 1774398371038
+          modified: 1774398371038
+          isPrivate: false
+          description: ""
+          sortKey: -999
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/category"
+        name: Crear categoría (POST)
+        meta:
+          id: req_4ee2c9ae9f2b473280a86d9cd32b610f
+          created: 1774398371039
+          modified: 1774399979469
+          isPrivate: false
+          description: ""
+          sortKey: -993
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "otros"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/categories"
+        name: Listar todas las categorías (GET)
+        meta:
+          id: req_5a1c0e4b0ad84df98d6667515a97a4f2
+          created: 1774398371039
+          modified: 1774398371039
+          isPrivate: false
+          description: ""
+          sortKey: -997
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/category/{{ _.category_id }}"
+        name: Filtrar por categoría
+        meta:
+          id: req_dfd512a4d7574870b8f42811691551c7
+          created: 1774398371039
+          modified: 1774398371039
+          isPrivate: false
+          description: ""
+          sortKey: -998
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory"
+        name: Crear producto (POST)
+        meta:
+          id: req_765a53baebc7493188479e0d1c106f06
+          created: 1774398371040
+          modified: 1774400083110
+          isPrivate: false
+          description: ""
+          sortKey: -992.5
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "otros3",
+              "description": "Descripción de producto",
+              "purchasePrice": 10.50,
+              "salePrice": 25.00,
+              "categoryId": "ccb292ab-da17-4271-994a-c460cc9d2c61",
+              "quantity": 20
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}"
+        name: Editar producto (PUT)
+        meta:
+          id: req_ce3844f022ad4f52959fbf0b79da6d0a
+          created: 1774398371040
+          modified: 1774398591128
+          isPrivate: false
+          description: ""
+          sortKey: -991.5
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "Producto actualizado",
+              "description": "Descripción de prueba",
+              "purchasePrice": 10.50,
+              "salePrice": 25.00,
+              "categoryId": "{{ _.category_id }}",
+              "quantity": 20
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}/sale"
+        name: Venta de producto (restar cantidad)
+        meta:
+          id: req_4c087c1f524e45bc8a7b7e95d05679d4
+          created: 1774398371041
+          modified: 1774398371041
+          isPrivate: false
+          description: ""
+          sortKey: -990
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "quantity": 3
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}"
+        name: Eliminar producto (soft delete)
+        meta:
+          id: req_5cf2e9b606b24979b7ab0059d3ff2615
+          created: 1774398371041
+          modified: 1774398371041
+          isPrivate: false
+          description: ""
+          sortKey: -992
+        method: DELETE
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}/purchase"
+        name: Compra de producto (sumar cantidad)
+        meta:
+          id: req_f638c2e0f81642f7b93d094e29678505
+          created: 1774398371041
+          modified: 1774398371041
+          isPrivate: false
+          description: ""
+          sortKey: -991
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "quantity": 10
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_90be2de1df08e66c5d1bb459ded3be7299be2c69
+    created: 1774398371168
+    modified: 1774398371168
+environments:
+  name: Base
+  meta:
+    id: env_049186b342f44360927bd6d9cfabacc4
+    created: 1774398371034
+    modified: 1774399739080
+    isPrivate: false
+  data:
+    base_url: http://localhost:8080
+    product_id: 00000000-0000-4000-8000-000000000001
+    category_id: 00000000-0000-4000-8000-000000000002
+    category_name: Categoría de prueba
+    product_name_search: Producto
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb2RyaUB0ZXN0LmNvbSIsImlhdCI6MTc3NDM5OTcxOSwiZXhwIjoxNzc1Njk1NzE5fQ.hugw4iO5cHKTg4GpwYLpMdbIGWsWE-6CIdj9wVAsSpE
+    login_email: rodri@test.com
+    login_password: "123456"
