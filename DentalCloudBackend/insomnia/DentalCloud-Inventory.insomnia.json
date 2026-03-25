@@ -1,0 +1,425 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-03-23T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app",
+  "resources": [
+    {
+      "_id": "wrk_dentalcloud_inventory",
+      "parentId": null,
+      "_type": "workspace",
+      "name": "DentalCloud - Inventario",
+      "description": "Colección para probar CRUD + compra/venta de /api/inventory. Los endpoints de inventario requieren JWT (excepto login/register). Tras hacer Login, copia el token al campo `token` del entorno.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_dentalcloud_base",
+      "parentId": "wrk_dentalcloud_inventory",
+      "_type": "environment",
+      "name": "Base",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "product_id": "00000000-0000-4000-8000-000000000001",
+        "category_id": "00000000-0000-4000-8000-000000000002",
+        "token": "",
+        "login_email": "usuario@ejemplo.com",
+        "login_password": "tu_password",
+        "category_name": "Categoría de prueba",
+        "product_name_search": "Producto"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "product_id",
+          "category_id",
+          "category_name",
+          "product_name_search",
+          "token",
+          "login_email",
+          "login_password"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "fld_auth",
+      "parentId": "wrk_dentalcloud_inventory",
+      "_type": "request_group",
+      "name": "Autenticación",
+      "description": "Obtén JWT para usar el módulo de inventario.",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -2000
+    },
+    {
+      "_id": "req_auth_login",
+      "parentId": "fld_auth",
+      "_type": "request",
+      "name": "Login (obtener JWT)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"{{ _.login_email }}\",\n  \"password\": \"{{ _.login_password }}\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "none"
+      },
+      "metaSortKey": -2000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "fld_inventory",
+      "parentId": "wrk_dentalcloud_inventory",
+      "_type": "request_group",
+      "name": "Inventario",
+      "description": "Inventario con cantidad en producto y operaciones de compra/venta",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1000
+    },
+    {
+      "_id": "req_inv_list",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Listar todos los productos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/inventory",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -1000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_search_by_category_name",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Buscar productos por nombre de categoría (query)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/inventory?categoryName={{ _.category_name }}",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999.5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_search_by_product_name",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Buscar productos por fragmento de nombre (query)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/inventory?name={{ _.product_name_search }}",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999.4,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_detail",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Detalle producto por ID",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/inventory/{{ _.product_id }}",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -999,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_by_category",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Filtrar por categoría",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/inventory/category/{{ _.category_id }}",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -998,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_list_categories",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Listar todas las categorías (GET)",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/inventory/categories",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -997,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_create_category",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Crear categoría (POST)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/inventory/category",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Categoría de prueba\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -993,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_create_product",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Crear producto (POST)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/inventory",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Producto nuevo\",\n  \"description\": \"Descripción de producto\",\n  \"purchasePrice\": 10.50,\n  \"salePrice\": 25.00,\n  \"categoryId\": \"{{ _.category_id }}\",\n  \"quantity\": 20\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -991,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_update",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Editar producto (PUT)",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/inventory/{{ _.product_id }}",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Producto actualizado\",\n  \"description\": \"Descripción de prueba\",\n  \"purchasePrice\": 10.50,\n  \"salePrice\": 25.00,\n  \"categoryId\": \"{{ _.category_id }}\",\n  \"quantity\": 20\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -993,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_delete",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Eliminar producto (soft delete)",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/inventory/{{ _.product_id }}",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -992,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_purchase",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Compra de producto (sumar cantidad)",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/inventory/{{ _.product_id }}/purchase",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantity\": 10\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -991,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    },
+    {
+      "_id": "req_inv_sale",
+      "parentId": "fld_inventory",
+      "_type": "request",
+      "name": "Venta de producto (restar cantidad)",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/inventory/{{ _.product_id }}/sale",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"quantity\": 3\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}",
+        "prefix": "Bearer"
+      },
+      "metaSortKey": -990,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global"
+    }
+  ]
+}
