@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -12,8 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
@@ -27,7 +26,7 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration-ms:1296000000}") // por defecto 24h en ms
+    @Value("${jwt.expiration-ms:1296000000}")
     private long expirationMs;
 
     /*
@@ -35,10 +34,10 @@ public class JwtService {
      */
     public String generateToken(String email) {
         return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
+                .signWith(getSignInKey())
                 .compact();
     }
 
@@ -60,11 +59,11 @@ public class JwtService {
         Extrae cualquier reclamo del token JWT usando la función proporcionada.
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSignInKey())
+        final Claims claims = Jwts.parser()
+                .verifyWith(getSignInKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
         return claimsResolver.apply(claims);
     }
 
@@ -80,10 +79,10 @@ public class JwtService {
      */
     public boolean isTokenValid(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSignInKey())
+            Jwts.parser()
+                    .verifyWith(getSignInKey())
                     .build()
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);
             return !isTokenExpired(token);
         } catch (ExpiredJwtException e) {
             log.warn("Token expirado: {}", e.getMessage());
@@ -117,8 +116,7 @@ public class JwtService {
     /*
         Obtiene la clave de firma a partir del secreto configurado.
      */
-    private Key getSignInKey() {
-        // Usa el secreto de 'application.yml' tal cual (no Base64), para evitar errores de decodificación.
+    private SecretKey getSignInKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 }
