@@ -37,7 +37,7 @@ public class AuthController {
         String result = authService.register(request);
         return ResponseEntity.ok().body(Map.of("message", result));
     }
-
+    
     /*
      * Endpoint para el inicio de sesión de usuarios.
      * Recibe un objeto AuthRequest en el cuerpo de la solicitud.

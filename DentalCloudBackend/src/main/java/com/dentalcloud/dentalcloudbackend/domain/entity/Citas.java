@@ -1,5 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.domain.entity;
 
+import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -19,35 +20,40 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "Citas")
-public class Cita {
+public class Citas {
     @Id
     @GeneratedValue( strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank
-    @Column(nullable = false)
-    private String patientName;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "detista_id",nullable = false)
     private Dentist dentist;
 
-    @NotNull
-    @FutureOrPresent
-    @Column(nullable = false)
-    private String appointmentDate; //Fecha de la cita
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "tratamiento_id", nullable = false)
+    private Tratamiento tratamiento;
 
     @NotNull
     @Column(nullable = false)
-    private LocalDateTime horaDesde;
-
-    @NotNull
-    @Column(nullable = false)
-    private LocalDateTime horaHasta;
+    private String fechaCita; //Fecha de la cita
 
     @NotBlank
-    @Email
-    @Column(nullable = false)
-    private String patientEmail; // Correo
+    @Column(columnDefinition = "TEXT")
+    private String motivo;
 
+    @NotNull
+    @Column(nullable = false)
+    private LocalDateTime hora; // El inicio de la cita
+
+    @NotNull
+    @Column(nullable = false)
+    private LocalDateTime horaFin; // El fin de la cita
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private EstadoCita estadoCita;
 }
