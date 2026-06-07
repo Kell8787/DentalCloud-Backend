@@ -1,5 +1,7 @@
-package com.dentalcloud.dentalcloudbackend.exceptions;
+package com.dentalcloud.dentalcloudbackend.handlers;
 
+import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
+import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
