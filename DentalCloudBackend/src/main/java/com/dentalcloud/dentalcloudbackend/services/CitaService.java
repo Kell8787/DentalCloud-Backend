@@ -9,10 +9,13 @@ import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Tratamiento;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
+import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
+import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.CitasRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.DentistRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.TratamientoRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,15 +37,16 @@ public class CitaService {
     private final TratamientoRepository tratamientoRepository;
     private final DentistRepository dentistRepository;
 
+    @Transactional
     public CitaResponseDTO crearCita(CrearCitasRequestDTO cita) {
         User paciente = userRepository.findById(cita.getPacienteId())
-                .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
 
         Dentist dentista = dentistRepository.findById(cita.getDentistaId())
-                .orElseThrow(() -> new RuntimeException("Dentista no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
 
         Tratamiento tratamiento = tratamientoRepository.findById(cita.getTratamientoId())
-                .orElseThrow(() -> new RuntimeException("Tratamiento no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
 
         LocalDate fechaCita = cita.getFecha();
         LocalTime horaInicio = cita.getHoraInicio();
@@ -50,7 +54,7 @@ public class CitaService {
 
         // Validar la fecha que no sea pasada
         if (fechaHoraInicio.isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("No se puede crear una cita en una fecha u hora pasada");
+            throw new BusinessException("No se puede crear una cita en una fecha u hora pasada");
         }
 
         // Validar horario laboral
@@ -62,14 +66,14 @@ public class CitaService {
         if(dia == DayOfWeek.SUNDAY){
             horaFinLaboral = LocalTime.of(12, 0);
         } else if (dia == DayOfWeek.SATURDAY){
-            throw new RuntimeException("No se pueden crear citas los sábados");
+            throw new BusinessException("No se pueden crear citas los sábados");
         } else {
             horaFinLaboral = LocalTime.of(16, 0);
         }
 
         // Validar que este en el horario laboral
         if(horaInicio.isBefore(horaInicioLaboral) || horaInicio.isAfter(horaFinLaboral)){
-            throw new RuntimeException("La hora de la cita debe estar dentro del horario laboral");
+            throw new BusinessException("La hora de la cita debe estar dentro del horario laboral");
         }
 
         // Calcular fecha y hora fin segun el tratamiento
@@ -77,7 +81,7 @@ public class CitaService {
 
         // Validar que no termine fuera del horario laboral
         if (fechaHoraFin.toLocalTime().isAfter(horaFinLaboral.plusMinutes(15))) {
-            throw new RuntimeException("La cita excede el horario laboral");
+            throw new BusinessException("La cita excede el horario laboral");
         }
 
         boolean hayConflicto = citasRepository
@@ -89,7 +93,7 @@ public class CitaService {
                 );
 
         if(hayConflicto){
-            throw new RuntimeException("El dentista tiene otra cita en ese horario");
+            throw new BusinessException("El dentista tiene otra cita en ese horario");
         }
 
         Citas nuevaCita = Citas.builder()
@@ -123,17 +127,17 @@ public class CitaService {
 
         // Validar que no sea sábado
         if (fecha.getDayOfWeek() == DayOfWeek.SATURDAY) {
-            throw new RuntimeException("No hay citas los sábados");
+            throw new BusinessException("No hay citas los sábados");
         }
 
         // Validar que no sea fecha pasada
         if (fecha.isBefore(LocalDate.now())) {
-            throw new RuntimeException("La fecha no puede ser en el pasado");
+            throw new BusinessException("La fecha no puede ser en el pasado");
         }
 
         // Obtener tratamiento para saber la duración
         Tratamiento tratamiento = tratamientoRepository.findById(tratamientoId)
-                .orElseThrow(() -> new RuntimeException("Tratamiento no encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
 
         int duracion = tratamiento.getDuracionMinutos();
 
@@ -189,15 +193,16 @@ public class CitaService {
         return resultado;
     }
 
+    @Transactional
     // Aprobar Una Cita
     public CitaResponseDTO aprobarCita(UUID citaId){
 
         Citas cita = citasRepository.findById(citaId)
-                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
 
         // Validar que la Cita este en "PENDIENTE"
         if(cita.getEstadoCita() != EstadoCita.PENDIENTE){
-            throw new RuntimeException("Solo se pueden aprobar citas en estado PENDIENTE");
+            throw new BusinessException("Solo se pueden aprobar citas en estado PENDIENTE");
         }
 
         cita.setEstadoCita(EstadoCita.CONFIRMADA);
@@ -207,13 +212,14 @@ public class CitaService {
         return mapearCitaAResponse(citaActualizada);
     }
 
+    @Transactional
     // Rechazar Una Cita
     public CitaResponseDTO rechazarCita(UUID citaId, RechazarCitasRequestDTO request){
         Citas cita = citasRepository.findById(citaId)
-                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
 
         if(cita.getEstadoCita() != EstadoCita.PENDIENTE){
-            throw new RuntimeException("Solo se pueden rechazar citas en estado PENDIENTE");
+            throw new BusinessException("Solo se pueden rechazar citas en estado PENDIENTE");
         }
 
         cita.setEstadoCita(EstadoCita.CANCELADA);
@@ -227,28 +233,29 @@ public class CitaService {
         return mapearCitaAResponse(citaActualizada);
     }
 
+    @Transactional
     // Cancelar Cita (Paciente)
-    public CitaResponseDTO cancelarCita(UUID citaId) {
+    public CitaResponseDTO cancelarCita(UUID citaId, String emailUsuario) {
         Citas cita = citasRepository.findById(citaId)
-                .orElseThrow(() -> new RuntimeException("Cita no encontrada"));
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
+
+        // Validar que sea el dueño de la cita (solo aplica para CUSTOMER)
+        if (!cita.getUser().getEmail().equals(emailUsuario)) {
+            throw new BusinessException("No tienes permiso para cancelar esta cita");
+        }
 
         // Validar que la cita esté en estado PENDIENTE o CONFIRMADA
         if (cita.getEstadoCita() != EstadoCita.PENDIENTE &&
                 cita.getEstadoCita() != EstadoCita.CONFIRMADA) {
-            throw new RuntimeException("No se puede cancelar una cita en estado " + cita.getEstadoCita());
+            throw new BusinessException("No se puede cancelar una cita en estado " + cita.getEstadoCita());
         }
 
-        // Validar que falten más de 24h para la cita
-        LocalDateTime ahora = LocalDateTime.now();
-        LocalDateTime fechaHoraCita = cita.getHora();
-
-        if (fechaHoraCita.isBefore(ahora.plusHours(24))) {
-            throw new RuntimeException("No se puede cancelar una cita con menos de 24 horas de anticipación");
+        if (cita.getHora().isBefore(LocalDateTime.now().plusHours(24))) {
+            throw new BusinessException("No se puede cancelar una cita con menos de 24 horas de anticipación");
         }
 
         cita.setEstadoCita(EstadoCita.CANCELADA);
         Citas citaActualizada = citasRepository.save(cita);
-
         return mapearCitaAResponse(citaActualizada);
     }
 

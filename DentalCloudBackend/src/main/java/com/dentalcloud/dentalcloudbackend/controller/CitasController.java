@@ -4,11 +4,14 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CrearCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
-import com.dentalcloud.dentalcloudbackend.repositories.CitasRepository;
 import com.dentalcloud.dentalcloudbackend.services.CitaService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -23,9 +26,9 @@ public class CitasController {
     private final CitaService citasService;
 
     @PostMapping
-    public ResponseEntity<CitaResponseDTO> crearCitas(@RequestBody CrearCitasRequestDTO citaRequest) {
+    public ResponseEntity<CitaResponseDTO> crearCitas(@Valid @RequestBody CrearCitasRequestDTO citaRequest) {
         CitaResponseDTO citaResponse = citasService.crearCita(citaRequest);
-        return ResponseEntity.ok(citaResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(citaResponse);
     }
 
     @GetMapping("/slots-disponibles")
@@ -52,8 +55,10 @@ public class CitasController {
 
     @PatchMapping("/{id}/cancelar")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'SECRETARIA', 'ADMIN')")
-    public ResponseEntity<CitaResponseDTO> cancelarCita(@PathVariable UUID id) {
-        return ResponseEntity.ok(citasService.cancelarCita(id));
+    public ResponseEntity<CitaResponseDTO> cancelarCita(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.cancelarCita(id, userDetails.getUsername()));
     }
 
 }
