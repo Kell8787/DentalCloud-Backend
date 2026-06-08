@@ -3,13 +3,16 @@ package com.dentalcloud.dentalcloudbackend.services;
 import com.dentalcloud.dentalcloudbackend.domain.dto.ActualizarContactoEmergenciaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.ActualizarPerfilRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.ContactoEmergenciaDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.InformacionMedicaDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.UserResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.ContactoEmergencia;
+import com.dentalcloud.dentalcloudbackend.domain.entity.InformacionMedica;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Parentesco;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.ContactoEmergenciaRepository;
+import com.dentalcloud.dentalcloudbackend.repositories.InformacionMedicaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +24,7 @@ public class PatientService {
 
     private final UserRepository userRepository;
     private final ContactoEmergenciaRepository contactoEmergenciaRepository;
+    private final InformacionMedicaRepository informacionMedicaRepository;
 
     // GET /patients/profile
     public UserResponseDTO obtenerPerfil(String email) {
@@ -80,6 +84,80 @@ public class PatientService {
         if (request.getParentesco() != null) contacto.setParentesco(Parentesco.valueOf(request.getParentesco().toUpperCase()));
 
         contactoEmergenciaRepository.save(contacto);
+    }
+
+    // GET /patients/medical-info/email?email= (SECRETARIA, ADMIN)
+    public InformacionMedicaDTO obtenerInformacionMedicaPorEmail(String patientEmail) {
+        User user = userRepository.findByEmail(patientEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+
+        InformacionMedica info = informacionMedicaRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Información médica no encontrada"));
+
+        InformacionMedicaDTO dto = new InformacionMedicaDTO();
+        dto.setAlergias(info.getAlergias());
+        dto.setMedicamentos(info.getMedicamentos());
+        dto.setAntecedentesMedicos(info.getAntecedentesMedicos());
+        return dto;
+    }
+
+    @Transactional
+    // PUT /patients/medical-info/email?email= (SECRETARIA, ADMIN)
+    public InformacionMedicaDTO actualizarInformacionMedicaPorEmail(String patientEmail, InformacionMedicaDTO request) {
+        User user = userRepository.findByEmail(patientEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+
+        InformacionMedica info = informacionMedicaRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Información médica no encontrada"));
+
+        if (request.getAlergias() != null) info.setAlergias(request.getAlergias());
+        if (request.getMedicamentos() != null) info.setMedicamentos(request.getMedicamentos());
+        if (request.getAntecedentesMedicos() != null) info.setAntecedentesMedicos(request.getAntecedentesMedicos());
+
+        informacionMedicaRepository.save(info);
+
+        InformacionMedicaDTO dto = new InformacionMedicaDTO();
+        dto.setAlergias(info.getAlergias());
+        dto.setMedicamentos(info.getMedicamentos());
+        dto.setAntecedentesMedicos(info.getAntecedentesMedicos());
+        return dto;
+    }
+
+    // GET /patients/medical-info
+    public InformacionMedicaDTO obtenerInformacionMedica(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        InformacionMedica info = informacionMedicaRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Información médica no encontrada"));
+
+        InformacionMedicaDTO dto = new InformacionMedicaDTO();
+        dto.setAlergias(info.getAlergias());
+        dto.setMedicamentos(info.getMedicamentos());
+        dto.setAntecedentesMedicos(info.getAntecedentesMedicos());
+        return dto;
+    }
+
+    @Transactional
+    // PUT /patients/medical-info
+    public InformacionMedicaDTO actualizarInformacionMedica(String email, InformacionMedicaDTO request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        InformacionMedica info = informacionMedicaRepository.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("Información médica no encontrada"));
+
+        if (request.getAlergias() != null) info.setAlergias(request.getAlergias());
+        if (request.getMedicamentos() != null) info.setMedicamentos(request.getMedicamentos());
+        if (request.getAntecedentesMedicos() != null) info.setAntecedentesMedicos(request.getAntecedentesMedicos());
+
+        informacionMedicaRepository.save(info);
+
+        InformacionMedicaDTO dto = new InformacionMedicaDTO();
+        dto.setAlergias(info.getAlergias());
+        dto.setMedicamentos(info.getMedicamentos());
+        dto.setAntecedentesMedicos(info.getAntecedentesMedicos());
+        return dto;
     }
 
     private UserResponseDTO mapearUserAResponse(User user) {
