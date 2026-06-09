@@ -62,14 +62,14 @@ public class PatientController {
     }
 
     @GetMapping("/medical-info/email")
-    @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<InformacionMedicaDTO> obtenerInformacionMedicaPorEmail(
             @RequestParam String email) {
         return ResponseEntity.ok(patientService.obtenerInformacionMedicaPorEmail(email));
     }
 
     @PutMapping("/medical-info/email")
-    @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<InformacionMedicaDTO> actualizarInformacionMedicaPorEmail(
             @RequestParam String email,
             @RequestBody InformacionMedicaDTO request) {

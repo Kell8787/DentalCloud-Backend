@@ -1,6 +1,7 @@
 package com.dentalcloud.dentalcloudbackend.domain.entity;
 
 import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -58,5 +59,6 @@ public class User {
     @Column(unique = true, nullable = false, length = 20)
     private String phoneNumber;
 
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Rol role;
 }
