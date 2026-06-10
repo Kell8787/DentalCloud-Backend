@@ -314,7 +314,7 @@ collection:
           created: 1774398371057
           modified: 1774398371057
           isPrivate: false
-          description: "Retorna la información médica de un paciente buscado por correo. Roles permitidos: SECRETARIA, ADMIN. Devuelve 200 OK con InformacionMedicaDTO."
+          description: "Retorna la información médica de un paciente buscado por correo. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con InformacionMedicaDTO."
           sortKey: -3050
         method: GET
         authentication:
@@ -337,7 +337,7 @@ collection:
           created: 1774398371058
           modified: 1774398371058
           isPrivate: false
-          description: "Actualiza parcialmente la información médica de un paciente buscado por correo. Roles permitidos: SECRETARIA, ADMIN. Devuelve 200 OK con la información actualizada."
+          description: "Actualiza parcialmente la información médica de un paciente buscado por correo. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con la información actualizada."
           sortKey: -3000
         method: PUT
         body:
@@ -365,7 +365,73 @@ collection:
           rebuildPath: true
 
   # ─────────────────────────────────────────
-  # 3. CITAS
+  # 3. USUARIOS
+  # ─────────────────────────────────────────
+  - name: Usuarios
+    meta:
+      id: fld_users_module_folder_001
+      created: 1774398371060
+      modified: 1774398371060
+      sortKey: -2500
+      description: "Consulta de doctores y gestión de roles de usuario."
+    children:
+      - url: "{{ _.base_url }}/api/users/doctors"
+        name: Listar doctores (GET)
+        meta:
+          id: req_users_get_doctors_001
+          created: 1774398371061
+          modified: 1774398371061
+          isPrivate: false
+          description: "Retorna todos los usuarios con rol DOCTOR. Requiere autenticación (cualquier rol)."
+          sortKey: -2520
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/users/{{ _.user_id_cambiar_rol }}/rol"
+        name: Cambiar rol de usuario (PATCH)
+        meta:
+          id: req_users_patch_rol_001
+          created: 1774398371062
+          modified: 1774398371062
+          isPrivate: false
+          description: "Cambia el rol de un usuario dado su UUID. Roles permitidos: ADMIN, DOCTOR. Valores posibles para nuevoRol: CUSTOMER, DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -2510
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "nuevoRol": "DOCTOR"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ─────────────────────────────────────────
+  # 4. CITAS
   # ─────────────────────────────────────────
   - name: Citas
     meta:
@@ -442,7 +508,7 @@ collection:
           created: 1774398371045
           modified: 1774398371045
           isPrivate: false
-          description: "Cambia el estado de una cita de PENDIENTE a CONFIRMADA. Roles permitidos: SECRETARIA, ADMIN."
+          description: "Cambia el estado de una cita de PENDIENTE a CONFIRMADA. Roles permitidos: DOCTOR, SECRETARIA, ADMIN."
           sortKey: -2300
         method: PATCH
         authentication:
@@ -465,7 +531,7 @@ collection:
           created: 1774398371046
           modified: 1774398371046
           isPrivate: false
-          description: "Cambia el estado de una cita de PENDIENTE a CANCELADA con un motivo opcional. Roles permitidos: SECRETARIA, ADMIN."
+          description: "Cambia el estado de una cita de PENDIENTE a CANCELADA con un motivo opcional. Roles permitidos: DOCTOR, SECRETARIA, ADMIN."
           sortKey: -2200
         method: PATCH
         body:
@@ -497,7 +563,7 @@ collection:
           created: 1774398371047
           modified: 1774398371047
           isPrivate: false
-          description: "El paciente cancela su propia cita (PENDIENTE o CONFIRMADA). Requiere más de 24 h de anticipación. Roles: CUSTOMER, SECRETARIA, ADMIN."
+          description: "El paciente cancela su propia cita (PENDIENTE o CONFIRMADA). Requiere más de 24 h de anticipación. Roles: CUSTOMER, DOCTOR, SECRETARIA, ADMIN."
           sortKey: -2100
         method: PATCH
         authentication:
@@ -514,7 +580,7 @@ collection:
           rebuildPath: true
 
   # ─────────────────────────────────────────
-  # 4. INVENTARIO
+  # 5. INVENTARIO
   # ─────────────────────────────────────────
   - name: Inventario
     meta:
@@ -883,6 +949,8 @@ environments:
     dentista_id: "63aaa696-e0ca-47f6-ae09-df54c35bd00b"
     tratamiento_id: "035060cc-913f-4603-b60c-71f7755fc304"
     cita_id: "73167715-7913-4e67-8d52-ba81cdc33538"
+    # ── Usuarios ──────────────────────────
+    user_id_cambiar_rol: "CAMBIAR_POR_UUID_USUARIO"
     # ── Inventario ────────────────────────
     product_id: "CAMBIAR_POR_UUID_PRODUCTO"
     category_id: "CAMBIAR_POR_UUID_CATEGORIA"

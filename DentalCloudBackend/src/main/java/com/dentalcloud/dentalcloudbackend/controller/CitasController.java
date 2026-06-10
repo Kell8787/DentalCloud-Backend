@@ -39,13 +39,13 @@ public class CitasController {
     }
 
     @PatchMapping("/{id}/aprobar")
-    @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> aprobarCita(@PathVariable UUID id) {
         return ResponseEntity.ok(citasService.aprobarCita(id));
     }
 
     @PatchMapping("/{id}/rechazar")
-    @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> rechazarCita(
             @PathVariable UUID id,
             @RequestBody(required = false) RechazarCitasRequestDTO request) {
@@ -54,7 +54,7 @@ public class CitasController {
     }
 
     @PatchMapping("/{id}/cancelar")
-    @PreAuthorize("hasAnyRole('CUSTOMER', 'SECRETARIA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> cancelarCita(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {

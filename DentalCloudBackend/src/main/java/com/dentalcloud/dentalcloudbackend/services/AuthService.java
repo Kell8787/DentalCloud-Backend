@@ -9,6 +9,7 @@ import com.dentalcloud.dentalcloudbackend.domain.entity.InformacionMedica;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Parentesco;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
 import com.dentalcloud.dentalcloudbackend.repositories.ContactoEmergenciaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.InformacionMedicaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
@@ -66,7 +67,7 @@ public class AuthService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .phoneNumber(request.getPhoneNumber())
-                .role("CUSTOMER")
+                .role(Rol.CUSTOMER)
                 .direccion(request.getDireccion())
                 .build();
 
@@ -134,7 +135,7 @@ public class AuthService {
                 .secondLastName(user.getSecondLastName())
                 .genero(String.valueOf(user.getGenero()))
                 .dui(user.getDui())
-                .role(user.getRole())
+                .role(user.getRole().name())
                 .build();
 
         return AuthResponseDTO.builder()

@@ -173,7 +173,7 @@ public class PatientService {
                 .birthDate(user.getBirthDate())
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
-                .role(user.getRole())
+                .role(user.getRole().name())
                 .build();
     }
 }
