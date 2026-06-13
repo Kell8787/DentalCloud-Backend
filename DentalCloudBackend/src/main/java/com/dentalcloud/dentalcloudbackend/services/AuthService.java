@@ -55,6 +55,10 @@ public class AuthService {
             throw new EntityExistsException("El DUI ya está registrado");
         }
 
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new EntityExistsException("El número de teléfono ya está registrado");
+        }
+
         if (!request.getPassword().equals(request.getConfirmPassword())) {
             throw new IllegalArgumentException("Las contraseñas no coinciden");
         }
