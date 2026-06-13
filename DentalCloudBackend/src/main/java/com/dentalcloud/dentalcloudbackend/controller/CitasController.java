@@ -67,4 +67,11 @@ public class CitasController {
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(citasService.obtenerMisCitas(userDetails.getUsername()));
     }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
+    public ResponseEntity<List<CitaResponseDTO>> obtenerTodasLasCitas(
+            @RequestParam(required = false) LocalDate fecha) {
+        return ResponseEntity.ok(citasService.obtenerTodasLasCitas(fecha));
+    }
 }

@@ -269,6 +269,20 @@ public class CitaService {
                 .toList();
     }
 
+    public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate fecha) {
+        List<Citas> citas;
+
+        if (fecha != null) {
+            citas = citasRepository.findByFechaCita(fecha.toString());
+        } else {
+            citas = citasRepository.findAll();
+        }
+
+        return citas.stream()
+                .map(this::mapearCitaAResponse)
+                .toList();
+    }
+
     private CitaResponseDTO mapearCitaAResponse(Citas cita) {
         return CitaResponseDTO.builder()
                 .id(cita.getId())
