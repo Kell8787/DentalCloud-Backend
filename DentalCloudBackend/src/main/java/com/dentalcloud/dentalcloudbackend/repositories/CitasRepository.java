@@ -1,5 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.repositories;
 
+import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Citas;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
@@ -18,6 +19,8 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
             LocalDateTime hora,
             List<EstadoCita> estados
     );
+
+    List<Citas> findByUser(User user);
 
     List<Citas> findByDentistAndFechaCita(Dentist dentist, String fechaCita);
 }

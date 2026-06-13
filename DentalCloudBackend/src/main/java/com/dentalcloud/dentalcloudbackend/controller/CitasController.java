@@ -61,4 +61,10 @@ public class CitasController {
         return ResponseEntity.ok(citasService.cancelarCita(id, userDetails.getUsername()));
     }
 
+    @GetMapping("/mis-citas")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<List<CitaResponseDTO>> obtenerMisCitas(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.obtenerMisCitas(userDetails.getUsername()));
+    }
 }

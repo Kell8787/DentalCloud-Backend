@@ -259,6 +259,16 @@ public class CitaService {
         return mapearCitaAResponse(citaActualizada);
     }
 
+    public List<CitaResponseDTO> obtenerMisCitas(String email) {
+        User paciente = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        return citasRepository.findByUser(paciente)
+                .stream()
+                .map(this::mapearCitaAResponse)
+                .toList();
+    }
+
     private CitaResponseDTO mapearCitaAResponse(Citas cita) {
         return CitaResponseDTO.builder()
                 .id(cita.getId())
