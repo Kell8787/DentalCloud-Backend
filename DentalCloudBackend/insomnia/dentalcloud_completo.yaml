@@ -69,6 +69,156 @@ collection:
             store: true
           rebuildPath: true
 
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 1] Registrar Ana Martinez (POST)"
+        meta:
+          id: req_mock_register_ana_001
+          created: 1750000000001
+          modified: 1750000000001
+          isPrivate: false
+          description: "Usuario mock para promover a DOCTOR y probar la vinculación automática con Dentist."
+          sortKey: -4290
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Ana",
+              "secondName": "Lucia",
+              "lastName": "Martinez",
+              "secondLastName": "Perez",
+              "genero": "FEMENINO",
+              "dui": "04521378-2",
+              "birthDate": "15-03-1990",
+              "email": "ana.martinez@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110001",
+              "direccion": "Colonia Escalon, San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Luis Martinez",
+                "email": "luis.martinez@dentaltest.com",
+                "phoneNumber": "71110011",
+                "parentesco": "PADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ninguna"],
+                "medicamentos": [],
+                "antecedentesMedicos": "Sin antecedentes relevantes"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 2] Registrar Carlos Rivas (POST)"
+        meta:
+          id: req_mock_register_carlos_002
+          created: 1750000000002
+          modified: 1750000000002
+          isPrivate: false
+          description: "Usuario mock paciente para probar creación y consulta de citas."
+          sortKey: -4280
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Carlos",
+              "secondName": "Eduardo",
+              "lastName": "Rivas",
+              "secondLastName": "Mendoza",
+              "genero": "MASCULINO",
+              "dui": "05632489-1",
+              "birthDate": "22-07-1995",
+              "email": "carlos.rivas@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110002",
+              "direccion": "Soyapango, San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Rosa Mendoza",
+                "email": "rosa.mendoza@dentaltest.com",
+                "phoneNumber": "71110022",
+                "parentesco": "MADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ibuprofeno"],
+                "medicamentos": ["Paracetamol"],
+                "antecedentesMedicos": "Alergia a antiinflamatorios"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 3] Registrar Maria Flores (POST)"
+        meta:
+          id: req_mock_register_maria_003
+          created: 1750000000003
+          modified: 1750000000003
+          isPrivate: false
+          description: "Usuario mock paciente adicional para pruebas de solapamiento de citas."
+          sortKey: -4270
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Maria",
+              "secondName": "Jose",
+              "lastName": "Flores",
+              "secondLastName": "Calderon",
+              "genero": "FEMENINO",
+              "dui": "07743560-3",
+              "birthDate": "08-11-1988",
+              "email": "maria.flores@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110003",
+              "direccion": "Santa Tecla, La Libertad",
+              "contactoEmergencia": {
+                "nombreCompleto": "Pedro Calderon",
+                "email": "pedro.calderon@dentaltest.com",
+                "phoneNumber": "71110033",
+                "parentesco": "ESPOSO"
+              },
+              "informacionMedica": {
+                "alergias": ["Polen", "Polvo"],
+                "medicamentos": ["Loratadina"],
+                "antecedentesMedicos": "Rinitis alergica cronica"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/auth/login"
         name: Login (POST)
         meta:
@@ -441,6 +591,52 @@ collection:
       sortKey: -2000
       description: "Reserva de horarios, consulta de slots disponibles y gestión de estados (aprobar / rechazar / cancelar)."
     children:
+      - url: "{{ _.base_url }}/api/citas/mis-citas"
+        name: Mis citas — paciente autenticado (GET)
+        meta:
+          id: req_citas_mis_citas_001
+          created: 1750000000004
+          modified: 1750000000004
+          isPrivate: false
+          description: "Retorna todas las citas del paciente autenticado. Usar con token del paciente (CUSTOMER). Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2550
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas"
+        name: Listar todas las citas — admin (GET)
+        meta:
+          id: req_citas_listar_admin_001
+          created: 1750000000005
+          modified: 1750000000005
+          isPrivate: false
+          description: "Retorna todas las citas del sistema. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2540
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/citas/slots-disponibles?fecha=2026-06-22&tratamientoId={{ _.tratamiento_id }}"
         name: Consultar slots disponibles (GET)
         meta:

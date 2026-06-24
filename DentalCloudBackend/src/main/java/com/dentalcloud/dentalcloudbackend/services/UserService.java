@@ -3,9 +3,11 @@ package com.dentalcloud.dentalcloudbackend.services;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CambiarRolRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.DoctorResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.UserResponseDTO;
+import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
+import com.dentalcloud.dentalcloudbackend.repositories.DentistRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +21,23 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final DentistRepository dentistRepository;
 
     public List<DoctorResponseDTO> obtenerDoctores() {
         return userRepository.findByRole(Rol.DOCTOR).stream()
-                .map(user -> DoctorResponseDTO.builder()
-                        .id(user.getId())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .email(user.getEmail())
-                        .phoneNumber(user.getPhoneNumber())
-                        .build())
+                .map(user -> {
+                    UUID dentistId = dentistRepository.findByUser(user)
+                            .map(Dentist::getId)
+                            .orElse(null);
+                    return DoctorResponseDTO.builder()
+                            .id(user.getId())
+                            .dentistId(dentistId)
+                            .firstName(user.getFirstName())
+                            .lastName(user.getLastName())
+                            .email(user.getEmail())
+                            .phoneNumber(user.getPhoneNumber())
+                            .build();
+                })
                 .toList();
     }
 
@@ -39,6 +48,17 @@ public class UserService {
 
         user.setRole(request.getNuevoRol());
         userRepository.save(user);
+
+        if (request.getNuevoRol() == Rol.DOCTOR) {
+            boolean yaExisteDentist = dentistRepository.findByUser(user).isPresent();
+            if (!yaExisteDentist) {
+                Dentist dentist = Dentist.builder()
+                        .Name(user.getFirstName() + " " + user.getLastName())
+                        .user(user)
+                        .build();
+                dentistRepository.save(dentist);
+            }
+        }
 
         return UserResponseDTO.builder()
                 .id(user.getId())
