@@ -1,8 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.domain.dto;
 
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,33 +11,25 @@ import java.util.UUID;
 
 @Data
 @Builder
-public class    CitaResponseDTO {
+public class CitaResponseDTO {
 
     private UUID id;
-    
-    @NotNull
+
     private UUID pacienteId;
+    private String pacienteNombre;
 
-    @NotNull
     private UUID dentistaId;
+    private String dentistaNombre;
 
-    @NotNull
     private UUID tratamientoId;
+    private String tratamientoNombre;
 
-    @NotNull
-    @FutureOrPresent
     private LocalDate fecha;
-
-    @NotNull
     private LocalTime horaInicio;
+    private LocalTime horaFin;
 
     private Integer duracionMinutos;
-
     private BigDecimal precio;
-
     private String motivo;
-
     private EstadoCita estadoCita;
-
-
 }

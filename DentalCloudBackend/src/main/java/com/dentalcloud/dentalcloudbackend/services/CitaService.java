@@ -109,18 +109,7 @@ public class CitaService {
 
         Citas citaGuardada = citasRepository.save(nuevaCita);
 
-        return CitaResponseDTO.builder()
-                .id(citaGuardada.getId())
-                .pacienteId(paciente.getId())
-                .dentistaId(dentista.getId())
-                .tratamientoId(tratamiento.getId())
-                .fecha(fechaCita)
-                .horaInicio(horaInicio)
-                .duracionMinutos(tratamiento.getDuracionMinutos())
-                .precio(tratamiento.getPrecio())
-                .estadoCita(EstadoCita.PENDIENTE)
-                .motivo(cita.getMotivo())
-                .build();
+        return mapearCitaAResponse(citaGuardada);
     }
 
     public List<SlotDisponibleDTO> obtenerSlotsDisponibles(LocalDate fecha, UUID tratamientoId) {
@@ -287,10 +276,14 @@ public class CitaService {
         return CitaResponseDTO.builder()
                 .id(cita.getId())
                 .pacienteId(cita.getUser().getId())
+                .pacienteNombre(cita.getUser().getFirstName() + " " + cita.getUser().getLastName())
                 .dentistaId(cita.getDentist().getId())
+                .dentistaNombre(cita.getDentist().getName())
                 .tratamientoId(cita.getTratamiento().getId())
+                .tratamientoNombre(cita.getTratamiento().getNombre())
                 .fecha(LocalDate.parse(cita.getFechaCita()))
                 .horaInicio(cita.getHora().toLocalTime())
+                .horaFin(cita.getHoraFin().toLocalTime())
                 .duracionMinutos(cita.getTratamiento().getDuracionMinutos())
                 .precio(cita.getTratamiento().getPrecio())
                 .estadoCita(cita.getEstadoCita())
