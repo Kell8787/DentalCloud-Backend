@@ -53,6 +53,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,   "/api/vehicles").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/vehicles/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/vehicles/**").hasRole("ADMIN")
+                        // Tratamientos: solo roles internos pueden crear
+                        .requestMatchers(HttpMethod.POST, "/api/tratamientos").hasAnyRole("DOCTOR", "SECRETARIA", "ADMIN")
+
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 )
