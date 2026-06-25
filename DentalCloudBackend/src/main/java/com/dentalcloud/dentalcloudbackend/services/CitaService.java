@@ -2,6 +2,7 @@ package com.dentalcloud.dentalcloudbackend.services;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CrearCitasRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.EditarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Citas;
@@ -9,6 +10,7 @@ import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Tratamiento;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
 import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.CitasRepository;
@@ -246,6 +248,94 @@ public class CitaService {
         cita.setEstadoCita(EstadoCita.CANCELADA);
         Citas citaActualizada = citasRepository.save(cita);
         return mapearCitaAResponse(citaActualizada);
+    }
+
+    @Transactional
+    public CitaResponseDTO editarCita(UUID citaId, String emailUsuario, EditarCitaRequestDTO request) {
+        Citas cita = citasRepository.findById(citaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
+
+        if (cita.getEstadoCita() != EstadoCita.PENDIENTE) {
+            throw new BusinessException("Solo se pueden editar citas en estado PENDIENTE");
+        }
+
+        User usuario = userRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        if (usuario.getRole() == Rol.CUSTOMER && !cita.getUser().getEmail().equals(emailUsuario)) {
+            throw new BusinessException("No tienes permiso para editar esta cita");
+        }
+
+        Dentist dentista = request.getDentistaId() != null
+                ? dentistRepository.findById(request.getDentistaId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"))
+                : cita.getDentist();
+
+        Tratamiento tratamiento = request.getTratamientoId() != null
+                ? tratamientoRepository.findById(request.getTratamientoId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"))
+                : cita.getTratamiento();
+
+        LocalDate fechaCita = request.getFecha() != null ? request.getFecha() : LocalDate.parse(cita.getFechaCita());
+        LocalTime horaInicio = request.getHoraInicio() != null ? request.getHoraInicio() : cita.getHora().toLocalTime();
+        LocalDateTime fechaHoraInicio = LocalDateTime.of(fechaCita, horaInicio);
+
+        if (fechaHoraInicio.isBefore(LocalDateTime.now())) {
+            throw new BusinessException("No se puede editar una cita a una fecha u hora pasada");
+        }
+
+        DayOfWeek dia = fechaCita.getDayOfWeek();
+        if (dia == DayOfWeek.SATURDAY) {
+            throw new BusinessException("No se pueden crear citas los sábados");
+        }
+
+        LocalTime horaInicioLaboral = LocalTime.of(8, 0);
+        LocalTime horaFinLaboral = dia == DayOfWeek.SUNDAY ? LocalTime.of(12, 0) : LocalTime.of(16, 0);
+
+        if (horaInicio.isBefore(horaInicioLaboral) || horaInicio.isAfter(horaFinLaboral)) {
+            throw new BusinessException("La hora de la cita debe estar dentro del horario laboral");
+        }
+
+        LocalDateTime fechaHoraFin = fechaHoraInicio.plusMinutes(tratamiento.getDuracionMinutos());
+
+        if (fechaHoraFin.toLocalTime().isAfter(horaFinLaboral.plusMinutes(15))) {
+            throw new BusinessException("La cita excede el horario laboral");
+        }
+
+        boolean hayConflicto = citasRepository
+                .existsByDentistAndHoraLessThanAndHoraFinGreaterThanAndEstadoCitaInAndIdNot(
+                        dentista, fechaHoraFin, fechaHoraInicio,
+                        List.of(EstadoCita.PENDIENTE, EstadoCita.CONFIRMADA), citaId);
+
+        if (hayConflicto) {
+            throw new BusinessException("El dentista tiene otra cita en ese horario");
+        }
+
+        cita.setDentist(dentista);
+        cita.setTratamiento(tratamiento);
+        cita.setFechaCita(fechaCita.toString());
+        cita.setHora(fechaHoraInicio);
+        cita.setHoraFin(fechaHoraFin);
+        if (request.getMotivo() != null) cita.setMotivo(request.getMotivo());
+
+        return mapearCitaAResponse(citasRepository.save(cita));
+    }
+
+    @Transactional
+    public void eliminarCita(UUID citaId, String emailUsuario) {
+        Citas cita = citasRepository.findById(citaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
+
+        if (cita.getEstadoCita() != EstadoCita.PENDIENTE) {
+            throw new BusinessException("Solo se pueden eliminar citas en estado PENDIENTE");
+        }
+
+        if (!cita.getUser().getEmail().equals(emailUsuario)) {
+            throw new BusinessException("No tienes permiso para eliminar esta cita");
+        }
+
+        cita.setEstadoCita(EstadoCita.ELIMINADA);
+        citasRepository.save(cita);
     }
 
     public List<CitaResponseDTO> obtenerMisCitas(String email) {

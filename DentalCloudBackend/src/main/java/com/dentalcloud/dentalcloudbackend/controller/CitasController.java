@@ -2,6 +2,7 @@ package com.dentalcloud.dentalcloudbackend.controller;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CrearCitasRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.EditarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
 import com.dentalcloud.dentalcloudbackend.services.CitaService;
@@ -59,6 +60,24 @@ public class CitasController {
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(citasService.cancelarCita(id, userDetails.getUsername()));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'DOCTOR', 'SECRETARIA', 'ADMIN')")
+    public ResponseEntity<CitaResponseDTO> editarCita(
+            @PathVariable UUID id,
+            @RequestBody EditarCitaRequestDTO request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.editarCita(id, userDetails.getUsername(), request));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<Void> eliminarCita(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        citasService.eliminarCita(id, userDetails.getUsername());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/mis-citas")
