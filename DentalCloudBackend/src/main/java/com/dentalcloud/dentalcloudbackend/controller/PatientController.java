@@ -5,6 +5,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.ActualizarPerfilRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.ContactoEmergenciaDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InformacionMedicaDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.UserResponseDTO;
+import java.util.List;
 import com.dentalcloud.dentalcloudbackend.services.PatientService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,13 @@ import org.springframework.web.bind.annotation.*;
 public class PatientController {
 
     private final PatientService patientService;
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
+    public ResponseEntity<List<UserResponseDTO>> buscarPacientes(
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(patientService.buscarPacientes(search));
+    }
 
     @GetMapping("/profile")
     public ResponseEntity<UserResponseDTO> obtenerPerfil(
