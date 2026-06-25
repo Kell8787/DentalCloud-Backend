@@ -284,6 +284,52 @@ collection:
       sortKey: -3000
       description: "Gestión del perfil personal, contacto de emergencia e información médica del paciente autenticado."
     children:
+      - url: "{{ _.base_url }}/api/patients"
+        name: Listar todos los pacientes (GET)
+        meta:
+          id: req_patients_list_001
+          created: 1750200000001
+          modified: 1750200000001
+          isPrivate: false
+          description: "Retorna todos los usuarios con rol CUSTOMER. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con lista de UserResponseDTO."
+          sortKey: -3700
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients?search={{ _.patient_search }}"
+        name: Buscar pacientes por nombre / DUI / teléfono (GET)
+        meta:
+          id: req_patients_search_001
+          created: 1750200000002
+          modified: 1750200000002
+          isPrivate: false
+          description: "Filtra pacientes (rol CUSTOMER) por nombre completo, DUI o teléfono. Búsqueda case-insensitive y parcial. Roles permitidos: DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -3650
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/patients/profile"
         name: Ver perfil (GET)
         meta:
@@ -1187,6 +1233,7 @@ environments:
     token: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpc2lyYWhldGE1NUBvdXRsb29rLmNvbSIsImlhdCI6MTc3OTkyMTYwMiwiZXhwIjoxNzgxMjE3NjAyfQ.PcDXCefWL2m_42cDOga7bpZW1ucrAxx2CXTRmiijA0bOp9-jOfWWUZSivGFtjjvZxQhP9OdIQ41pUJPXQj3DkQ"
     # ── Paciente / Citas ──────────────────
     patient_email_query: "isiraheta55@outlook.com"
+    patient_search: "María"
     paciente_id: "0f9e0de5-56c8-4a24-b1f8-ee8953d3315b"
     dentista_id: "63aaa696-e0ca-47f6-ae09-df54c35bd00b"
     tratamiento_id: "035060cc-913f-4603-b60c-71f7755fc304"

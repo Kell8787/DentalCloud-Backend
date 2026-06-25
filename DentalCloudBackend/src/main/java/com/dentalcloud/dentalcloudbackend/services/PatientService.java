@@ -10,6 +10,8 @@ import com.dentalcloud.dentalcloudbackend.domain.entity.InformacionMedica;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Parentesco;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
+import java.util.List;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.ContactoEmergenciaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.InformacionMedicaRepository;
@@ -158,6 +160,19 @@ public class PatientService {
         dto.setMedicamentos(info.getMedicamentos());
         dto.setAntecedentesMedicos(info.getAntecedentesMedicos());
         return dto;
+    }
+
+    public List<UserResponseDTO> buscarPacientes(String search) {
+        List<User> pacientes = userRepository.findByRole(Rol.CUSTOMER);
+        if (search != null && !search.isBlank()) {
+            String q = search.toLowerCase();
+            pacientes = pacientes.stream()
+                    .filter(u -> (u.getFirstName() + " " + u.getLastName()).toLowerCase().contains(q)
+                            || (u.getDui() != null && u.getDui().contains(q))
+                            || (u.getPhoneNumber() != null && u.getPhoneNumber().contains(q)))
+                    .toList();
+        }
+        return pacientes.stream().map(this::mapearUserAResponse).toList();
     }
 
     private UserResponseDTO mapearUserAResponse(User user) {
