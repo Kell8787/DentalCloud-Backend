@@ -67,6 +67,14 @@ public class CitasController {
         return ResponseEntity.ok(citasService.obtenerMisCitas(userDetails.getUsername()));
     }
 
+    @GetMapping("/mi-agenda")
+    @PreAuthorize("hasRole('DOCTOR')")
+    public ResponseEntity<List<CitaResponseDTO>> obtenerMiAgenda(
+            @RequestParam(required = false) LocalDate fecha,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.obtenerAgendaDoctor(userDetails.getUsername(), fecha));
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
     public ResponseEntity<List<CitaResponseDTO>> obtenerTodasLasCitas(

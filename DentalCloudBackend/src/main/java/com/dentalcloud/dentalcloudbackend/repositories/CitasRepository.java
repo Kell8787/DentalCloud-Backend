@@ -26,4 +26,6 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
     List<Citas> findByUser(User user);
 
     List<Citas> findByDentistAndFechaCita(Dentist dentist, String fechaCita);
+
+    List<Citas> findByDentist(Dentist dentist);
 }

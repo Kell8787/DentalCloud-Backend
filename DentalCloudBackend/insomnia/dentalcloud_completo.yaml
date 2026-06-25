@@ -69,6 +69,156 @@ collection:
             store: true
           rebuildPath: true
 
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 1] Registrar Ana Martinez (POST)"
+        meta:
+          id: req_mock_register_ana_001
+          created: 1750000000001
+          modified: 1750000000001
+          isPrivate: false
+          description: "Usuario mock para promover a DOCTOR y probar la vinculación automática con Dentist."
+          sortKey: -4290
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Ana",
+              "secondName": "Lucia",
+              "lastName": "Martinez",
+              "secondLastName": "Perez",
+              "genero": "FEMENINO",
+              "dui": "04521378-2",
+              "birthDate": "15-03-1990",
+              "email": "ana.martinez@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110001",
+              "direccion": "Colonia Escalon, San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Luis Martinez",
+                "email": "luis.martinez@dentaltest.com",
+                "phoneNumber": "71110011",
+                "parentesco": "PADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ninguna"],
+                "medicamentos": [],
+                "antecedentesMedicos": "Sin antecedentes relevantes"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 2] Registrar Carlos Rivas (POST)"
+        meta:
+          id: req_mock_register_carlos_002
+          created: 1750000000002
+          modified: 1750000000002
+          isPrivate: false
+          description: "Usuario mock paciente para probar creación y consulta de citas."
+          sortKey: -4280
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Carlos",
+              "secondName": "Eduardo",
+              "lastName": "Rivas",
+              "secondLastName": "Mendoza",
+              "genero": "MASCULINO",
+              "dui": "05632489-1",
+              "birthDate": "22-07-1995",
+              "email": "carlos.rivas@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110002",
+              "direccion": "Soyapango, San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Rosa Mendoza",
+                "email": "rosa.mendoza@dentaltest.com",
+                "phoneNumber": "71110022",
+                "parentesco": "MADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ibuprofeno"],
+                "medicamentos": ["Paracetamol"],
+                "antecedentesMedicos": "Alergia a antiinflamatorios"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 3] Registrar Maria Flores (POST)"
+        meta:
+          id: req_mock_register_maria_003
+          created: 1750000000003
+          modified: 1750000000003
+          isPrivate: false
+          description: "Usuario mock paciente adicional para pruebas de solapamiento de citas."
+          sortKey: -4270
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Maria",
+              "secondName": "Jose",
+              "lastName": "Flores",
+              "secondLastName": "Calderon",
+              "genero": "FEMENINO",
+              "dui": "07743560-3",
+              "birthDate": "08-11-1988",
+              "email": "maria.flores@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110003",
+              "direccion": "Santa Tecla, La Libertad",
+              "contactoEmergencia": {
+                "nombreCompleto": "Pedro Calderon",
+                "email": "pedro.calderon@dentaltest.com",
+                "phoneNumber": "71110033",
+                "parentesco": "ESPOSO"
+              },
+              "informacionMedica": {
+                "alergias": ["Polen", "Polvo"],
+                "medicamentos": ["Loratadina"],
+                "antecedentesMedicos": "Rinitis alergica cronica"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/auth/login"
         name: Login (POST)
         meta:
@@ -134,6 +284,52 @@ collection:
       sortKey: -3000
       description: "Gestión del perfil personal, contacto de emergencia e información médica del paciente autenticado."
     children:
+      - url: "{{ _.base_url }}/api/patients"
+        name: Listar todos los pacientes (GET)
+        meta:
+          id: req_patients_list_001
+          created: 1750200000001
+          modified: 1750200000001
+          isPrivate: false
+          description: "Retorna todos los usuarios con rol CUSTOMER. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con lista de UserResponseDTO."
+          sortKey: -3700
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients?search={{ _.patient_search }}"
+        name: Buscar pacientes por nombre / DUI / teléfono (GET)
+        meta:
+          id: req_patients_search_001
+          created: 1750200000002
+          modified: 1750200000002
+          isPrivate: false
+          description: "Filtra pacientes (rol CUSTOMER) por nombre completo, DUI o teléfono. Búsqueda case-insensitive y parcial. Roles permitidos: DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -3650
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/patients/profile"
         name: Ver perfil (GET)
         meta:
@@ -441,6 +637,98 @@ collection:
       sortKey: -2000
       description: "Reserva de horarios, consulta de slots disponibles y gestión de estados (aprobar / rechazar / cancelar)."
     children:
+      - url: "{{ _.base_url }}/api/citas/mis-citas"
+        name: Mis citas — paciente autenticado (GET)
+        meta:
+          id: req_citas_mis_citas_001
+          created: 1750000000004
+          modified: 1750000000004
+          isPrivate: false
+          description: "Retorna todas las citas del paciente autenticado. Usar con token del paciente (CUSTOMER). Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2550
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/mi-agenda"
+        name: Mi agenda — doctor autenticado (GET)
+        meta:
+          id: req_citas_mi_agenda_001
+          created: 1750100000001
+          modified: 1750100000001
+          isPrivate: false
+          description: "Retorna todas las citas asignadas al doctor autenticado. Requiere token con rol DOCTOR. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2548
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/mi-agenda?fecha={{ _.agenda_fecha }}"
+        name: Mi agenda por fecha — doctor autenticado (GET)
+        meta:
+          id: req_citas_mi_agenda_fecha_001
+          created: 1750100000002
+          modified: 1750100000002
+          isPrivate: false
+          description: "Retorna las citas del doctor autenticado filtradas por fecha (yyyy-MM-dd). Requiere token con rol DOCTOR. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2546
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas"
+        name: Listar todas las citas — admin (GET)
+        meta:
+          id: req_citas_listar_admin_001
+          created: 1750000000005
+          modified: 1750000000005
+          isPrivate: false
+          description: "Retorna todas las citas del sistema. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2540
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/citas/slots-disponibles?fecha=2026-06-22&tratamientoId={{ _.tratamiento_id }}"
         name: Consultar slots disponibles (GET)
         meta:
@@ -945,10 +1233,12 @@ environments:
     token: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpc2lyYWhldGE1NUBvdXRsb29rLmNvbSIsImlhdCI6MTc3OTkyMTYwMiwiZXhwIjoxNzgxMjE3NjAyfQ.PcDXCefWL2m_42cDOga7bpZW1ucrAxx2CXTRmiijA0bOp9-jOfWWUZSivGFtjjvZxQhP9OdIQ41pUJPXQj3DkQ"
     # ── Paciente / Citas ──────────────────
     patient_email_query: "isiraheta55@outlook.com"
+    patient_search: "María"
     paciente_id: "0f9e0de5-56c8-4a24-b1f8-ee8953d3315b"
     dentista_id: "63aaa696-e0ca-47f6-ae09-df54c35bd00b"
     tratamiento_id: "035060cc-913f-4603-b60c-71f7755fc304"
     cita_id: "73167715-7913-4e67-8d52-ba81cdc33538"
+    agenda_fecha: "2026-06-24"
     # ── Usuarios ──────────────────────────
     user_id_cambiar_rol: "CAMBIAR_POR_UUID_USUARIO"
     # ── Inventario ────────────────────────
