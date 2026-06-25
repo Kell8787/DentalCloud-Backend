@@ -32,4 +32,7 @@ public class CitaResponseDTO {
     private BigDecimal precio;
     private String motivo;
     private EstadoCita estadoCita;
+
+    private String motivoCancelacion;
+
 }

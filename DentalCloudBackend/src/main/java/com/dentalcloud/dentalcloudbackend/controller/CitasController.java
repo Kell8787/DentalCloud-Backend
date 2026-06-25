@@ -1,9 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.controller;
 
-import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.CrearCitasRequestDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.*;
 import com.dentalcloud.dentalcloudbackend.services.CitaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -57,8 +54,10 @@ public class CitasController {
     @PreAuthorize("hasAnyRole('CUSTOMER', 'DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> cancelarCita(
             @PathVariable UUID id,
+            @RequestBody(required = false) CancelarCitaRequestDTO request,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(citasService.cancelarCita(id, userDetails.getUsername()));
+        if (request == null) request = new CancelarCitaRequestDTO();
+        return ResponseEntity.ok(citasService.cancelarCita(id, userDetails.getUsername(), request));
     }
 
     @GetMapping("/mis-citas")
