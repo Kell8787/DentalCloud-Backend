@@ -614,6 +614,52 @@ collection:
             store: true
           rebuildPath: true
 
+      - url: "{{ _.base_url }}/api/citas/mi-agenda"
+        name: Mi agenda — doctor autenticado (GET)
+        meta:
+          id: req_citas_mi_agenda_001
+          created: 1750100000001
+          modified: 1750100000001
+          isPrivate: false
+          description: "Retorna todas las citas asignadas al doctor autenticado. Requiere token con rol DOCTOR. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2548
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/mi-agenda?fecha={{ _.agenda_fecha }}"
+        name: Mi agenda por fecha — doctor autenticado (GET)
+        meta:
+          id: req_citas_mi_agenda_fecha_001
+          created: 1750100000002
+          modified: 1750100000002
+          isPrivate: false
+          description: "Retorna las citas del doctor autenticado filtradas por fecha (yyyy-MM-dd). Requiere token con rol DOCTOR. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2546
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/citas"
         name: Listar todas las citas — admin (GET)
         meta:
@@ -1145,6 +1191,7 @@ environments:
     dentista_id: "63aaa696-e0ca-47f6-ae09-df54c35bd00b"
     tratamiento_id: "035060cc-913f-4603-b60c-71f7755fc304"
     cita_id: "73167715-7913-4e67-8d52-ba81cdc33538"
+    agenda_fecha: "2026-06-24"
     # ── Usuarios ──────────────────────────
     user_id_cambiar_rol: "CAMBIAR_POR_UUID_USUARIO"
     # ── Inventario ────────────────────────

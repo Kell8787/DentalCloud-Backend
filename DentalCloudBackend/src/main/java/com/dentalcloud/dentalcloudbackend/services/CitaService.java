@@ -258,6 +258,17 @@ public class CitaService {
                 .toList();
     }
 
+    public List<CitaResponseDTO> obtenerAgendaDoctor(String emailDoctor, LocalDate fecha) {
+        Dentist dentista = dentistRepository.findByUserEmail(emailDoctor)
+                .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
+
+        List<Citas> citas = fecha != null
+                ? citasRepository.findByDentistAndFechaCita(dentista, fecha.toString())
+                : citasRepository.findByDentist(dentista);
+
+        return citas.stream().map(this::mapearCitaAResponse).toList();
+    }
+
     public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate fecha) {
         List<Citas> citas;
 
