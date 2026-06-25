@@ -41,5 +41,6 @@ public class    CitaResponseDTO {
 
     private EstadoCita estadoCita;
 
+    private String motivoCancelacion;
 
 }

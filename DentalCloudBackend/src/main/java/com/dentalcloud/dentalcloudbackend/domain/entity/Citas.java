@@ -53,6 +53,9 @@ public class Citas {
     @Column(nullable = false)
     private LocalDateTime horaFin; // El fin de la cita
 
+    @Column(columnDefinition = "TEXT")
+    private String motivoCancelacion;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoCita estadoCita;
