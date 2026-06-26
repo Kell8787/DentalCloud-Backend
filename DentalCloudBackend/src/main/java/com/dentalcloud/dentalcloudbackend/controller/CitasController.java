@@ -1,6 +1,7 @@
 package com.dentalcloud.dentalcloudbackend.controller;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.*;
+import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
 import com.dentalcloud.dentalcloudbackend.services.CitaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -78,7 +79,8 @@ public class CitasController {
     @GetMapping
     @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
     public ResponseEntity<List<CitaResponseDTO>> obtenerTodasLasCitas(
-            @RequestParam(required = false) LocalDate fecha) {
-        return ResponseEntity.ok(citasService.obtenerTodasLasCitas(fecha));
+            @RequestParam(required = false) LocalDate fecha,
+            @RequestParam(required = false) EstadoCita estado) {
+        return ResponseEntity.ok(citasService.obtenerTodasLasCitas(fecha, estado));
     }
 }
