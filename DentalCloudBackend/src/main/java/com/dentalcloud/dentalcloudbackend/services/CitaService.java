@@ -1,10 +1,7 @@
 package com.dentalcloud.dentalcloudbackend.services;
 
-import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.CrearCitasRequestDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.EditarCitaRequestDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
-import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
+
+import com.dentalcloud.dentalcloudbackend.domain.dto.*;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Citas;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Tratamiento;
@@ -216,33 +213,33 @@ public class CitaService {
         cita.setEstadoCita(EstadoCita.CANCELADA);
 
         if(request.getMotivo() != null && !request.getMotivo().isBlank()){
-            cita.setMotivo(request.getMotivo());
+            cita.setMotivoCancelacion(request.getMotivo());
         }
 
         Citas citaActualizada = citasRepository.save(cita);
-
         return mapearCitaAResponse(citaActualizada);
     }
 
     @Transactional
     // Cancelar Cita (Paciente)
-    public CitaResponseDTO cancelarCita(UUID citaId, String emailUsuario) {
+    public CitaResponseDTO cancelarCita(UUID citaId, String emailUsuario, CancelarCitaRequestDTO request) {
         Citas cita = citasRepository.findById(citaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
 
-        // Validar que sea el dueño de la cita (solo aplica para CUSTOMER)
-        if (!cita.getUser().getEmail().equals(emailUsuario)) {
+        User usuario = userRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        // La validación de dueño solo aplica si quien cancela es el propio paciente
+        boolean esElPaciente = cita.getUser().getEmail().equals(emailUsuario);
+        boolean esStaff = false;
+
+        if (!esElPaciente && !esStaff) {
             throw new BusinessException("No tienes permiso para cancelar esta cita");
         }
 
-        // Validar que la cita esté en estado PENDIENTE o CONFIRMADA
         if (cita.getEstadoCita() != EstadoCita.PENDIENTE &&
                 cita.getEstadoCita() != EstadoCita.CONFIRMADA) {
             throw new BusinessException("No se puede cancelar una cita en estado " + cita.getEstadoCita());
-        }
-
-        if (cita.getHora().isBefore(LocalDateTime.now().plusHours(24))) {
-            throw new BusinessException("No se puede cancelar una cita con menos de 24 horas de anticipación");
         }
 
         cita.setEstadoCita(EstadoCita.CANCELADA);
@@ -359,11 +356,15 @@ public class CitaService {
         return citas.stream().map(this::mapearCitaAResponse).toList();
     }
 
-    public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate fecha) {
+    public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate fecha, EstadoCita estado) {
         List<Citas> citas;
 
-        if (fecha != null) {
+        if (fecha != null && estado != null) {
+            citas = citasRepository.findByFechaCitaAndEstadoCita(fecha.toString(), estado);
+        } else if (fecha != null) {
             citas = citasRepository.findByFechaCita(fecha.toString());
+        } else if (estado != null) {
+            citas = citasRepository.findByEstadoCita(estado);
         } else {
             citas = citasRepository.findAll();
         }
@@ -389,6 +390,7 @@ public class CitaService {
                 .precio(cita.getTratamiento().getPrecio())
                 .estadoCita(cita.getEstadoCita())
                 .motivo(cita.getMotivo())
+                .motivoCancelacion(cita.getMotivoCancelacion())
                 .build();
     }
 }
