@@ -221,7 +221,7 @@ public class CitaService {
     }
 
     @Transactional
-    // Cancelar Cita (Paciente)
+// Cancelar Cita (Paciente)
     public CitaResponseDTO cancelarCita(UUID citaId, String emailUsuario, CancelarCitaRequestDTO request) {
         Citas cita = citasRepository.findById(citaId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
@@ -229,9 +229,10 @@ public class CitaService {
         User usuario = userRepository.findByEmail(emailUsuario)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        // La validación de dueño solo aplica si quien cancela es el propio paciente
         boolean esElPaciente = cita.getUser().getEmail().equals(emailUsuario);
-        boolean esStaff = false;
+        boolean esStaff = usuario.getRole() == Rol.SECRETARIA
+                || usuario.getRole() == Rol.ADMIN
+                || usuario.getRole() == Rol.DOCTOR;
 
         if (!esElPaciente && !esStaff) {
             throw new BusinessException("No tienes permiso para cancelar esta cita");
@@ -240,6 +241,14 @@ public class CitaService {
         if (cita.getEstadoCita() != EstadoCita.PENDIENTE &&
                 cita.getEstadoCita() != EstadoCita.CONFIRMADA) {
             throw new BusinessException("No se puede cancelar una cita en estado " + cita.getEstadoCita());
+        }
+
+        if (esElPaciente && cita.getHora().isBefore(LocalDateTime.now().plusHours(24))) {
+            throw new BusinessException("No se puede cancelar una cita con menos de 24 horas de anticipación");
+        }
+
+        if (request.getMotivoCancelacion() != null && !request.getMotivoCancelacion().isBlank()) {
+            cita.setMotivoCancelacion(request.getMotivoCancelacion());
         }
 
         cita.setEstadoCita(EstadoCita.CANCELADA);
