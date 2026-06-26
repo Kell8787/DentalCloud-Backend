@@ -45,19 +45,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Endpoints públicos
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/vehicles").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reservations").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/reservations/date").permitAll()
                         // Validación de token
                         .requestMatchers("/api/auth/validate").authenticated()
-
-                        // Operaciones de administración sobre vehículos
-                        .requestMatchers(HttpMethod.POST,   "/api/vehicles").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT,    "/api/vehicles/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/vehicles/**").hasRole("ADMIN")
                         // Tratamientos: solo roles internos pueden crear
                         .requestMatchers(HttpMethod.POST, "/api/tratamientos").hasAnyRole("DOCTOR", "SECRETARIA", "ADMIN")
-
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 )
