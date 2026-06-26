@@ -211,11 +211,10 @@ public class CitaService {
         cita.setEstadoCita(EstadoCita.CANCELADA);
 
         if(request.getMotivo() != null && !request.getMotivo().isBlank()){
-            cita.setMotivo(request.getMotivo());
+            cita.setMotivoCancelacion(request.getMotivo());
         }
 
         Citas citaActualizada = citasRepository.save(cita);
-
         return mapearCitaAResponse(citaActualizada);
     }
 
