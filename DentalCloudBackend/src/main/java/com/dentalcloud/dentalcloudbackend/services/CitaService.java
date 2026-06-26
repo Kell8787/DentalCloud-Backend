@@ -266,11 +266,15 @@ public class CitaService {
         return citas.stream().map(this::mapearCitaAResponse).toList();
     }
 
-    public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate fecha) {
+    public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate fecha, EstadoCita estado) {
         List<Citas> citas;
 
-        if (fecha != null) {
+        if (fecha != null && estado != null) {
+            citas = citasRepository.findByFechaCitaAndEstadoCita(fecha.toString(), estado);
+        } else if (fecha != null) {
             citas = citasRepository.findByFechaCita(fecha.toString());
+        } else if (estado != null) {
+            citas = citasRepository.findByEstadoCita(estado);
         } else {
             citas = citasRepository.findAll();
         }
