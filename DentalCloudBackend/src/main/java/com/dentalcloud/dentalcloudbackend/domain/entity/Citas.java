@@ -30,7 +30,7 @@ public class Citas {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "detista_id",nullable = false)
+    @JoinColumn(name = "dentista_id", nullable = false)
     private Dentist dentist;
 
     @ManyToOne(optional = false)
