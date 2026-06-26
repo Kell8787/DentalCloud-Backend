@@ -23,7 +23,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         crearAdmin();
-        //crearDoctoresPrueba(); // TODO: eliminar cuando ya no se necesiten datos de prueba
+        crearDoctoresPrueba(); // TODO: eliminar cuando ya no se necesiten datos de prueba
     }
 
     private void crearAdmin() {

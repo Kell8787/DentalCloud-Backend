@@ -1,0 +1,1078 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: DentalCloud - Regression Tests
+meta:
+  id: wrk_rt_dentalcloud_001
+  created: 1750000000000
+  modified: 1750000000000
+  description: "Suite de regresion automatizada. Ejecutar: inso run test insomnia/regression_tests.yaml --env Test"
+
+# ══════════════════════════════════════════════════════════════════
+# COLLECTION — requests declaradas y reutilizadas por los test suites
+# ══════════════════════════════════════════════════════════════════
+collection:
+
+  # ── AUTH ────────────────────────────────────────────────────────
+  - name: Auth
+    meta:
+      id: fld_rt_auth
+      created: 1750000000001
+      modified: 1750000000001
+    children:
+      - url: "{{ _.base_url }}/api/auth/login"
+        name: Login Admin
+        meta:
+          id: req_rt_login_admin
+          created: 1750000000010
+          modified: 1750000000010
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "{{ _.admin_email }}",
+              "password": "{{ _.admin_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: Registrar Test Paciente
+        meta:
+          id: req_rt_register_paciente
+          created: 1750000000011
+          modified: 1750000000011
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Test",
+              "secondName": "Auto",
+              "lastName": "Paciente",
+              "secondLastName": "Regresion",
+              "genero": "MASCULINO",
+              "dui": "99999901-0",
+              "birthDate": "01-01-2000",
+              "email": "{{ _.paciente_email }}",
+              "password": "{{ _.paciente_password }}",
+              "confirmPassword": "{{ _.paciente_password }}",
+              "phoneNumber": "70000001",
+              "direccion": "San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Contacto Test",
+                "email": "contacto.test@dentalcloud.com",
+                "phoneNumber": "70000011",
+                "parentesco": "PADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ninguna"],
+                "medicamentos": [],
+                "antecedentesMedicos": "Sin antecedentes"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/login"
+        name: Login Test Paciente
+        meta:
+          id: req_rt_login_paciente
+          created: 1750000000012
+          modified: 1750000000012
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "{{ _.paciente_email }}",
+              "password": "{{ _.paciente_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: Registrar Test Secretaria
+        meta:
+          id: req_rt_register_secretaria
+          created: 1750000000013
+          modified: 1750000000013
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Test",
+              "secondName": "Auto",
+              "lastName": "Secretaria",
+              "secondLastName": "Regresion",
+              "genero": "FEMENINO",
+              "dui": "99999902-0",
+              "birthDate": "01-06-1995",
+              "email": "{{ _.secretaria_email }}",
+              "password": "{{ _.secretaria_password }}",
+              "confirmPassword": "{{ _.secretaria_password }}",
+              "phoneNumber": "70000002",
+              "direccion": "Santa Ana",
+              "contactoEmergencia": {
+                "nombreCompleto": "Contacto Test 2",
+                "email": "contacto2.test@dentalcloud.com",
+                "phoneNumber": "70000022",
+                "parentesco": "MADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ninguna"],
+                "medicamentos": [],
+                "antecedentesMedicos": "Sin antecedentes"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/login"
+        name: Login Test Secretaria
+        meta:
+          id: req_rt_login_secretaria
+          created: 1750000000014
+          modified: 1750000000014
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "{{ _.secretaria_email }}",
+              "password": "{{ _.secretaria_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/login"
+        name: Login Doctor
+        meta:
+          id: req_rt_login_doctor
+          created: 1750000000015
+          modified: 1750000000015
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "{{ _.doctor_email }}",
+              "password": "{{ _.doctor_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ── USUARIOS ─────────────────────────────────────────────────────
+  - name: Usuarios
+    meta:
+      id: fld_rt_users
+      created: 1750000000002
+      modified: 1750000000002
+    children:
+      - url: "{{ _.base_url }}/api/users/doctors"
+        name: Listar Doctores
+        meta:
+          id: req_rt_listar_doctores
+          created: 1750000000020
+          modified: 1750000000020
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/users/{{ _.patch_rol_user_id }}/rol"
+        name: Cambiar Rol Usuario
+        meta:
+          id: req_rt_patch_cambiar_rol
+          created: 1750000000021
+          modified: 1750000000021
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "nuevoRol": "{{ _.patch_rol_nuevo_rol }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ── TRATAMIENTOS ─────────────────────────────────────────────────
+  - name: Tratamientos
+    meta:
+      id: fld_rt_tratamientos
+      created: 1750000000003
+      modified: 1750000000003
+    children:
+      - url: "{{ _.base_url }}/api/tratamientos"
+        name: Crear Tratamiento
+        meta:
+          id: req_rt_crear_tratamiento
+          created: 1750000000030
+          modified: 1750000000030
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "nombre": "Limpieza Regresion",
+              "descripcion": "Tratamiento de prueba para suite de regresion",
+              "duracionMinutos": 60,
+              "precio": 50.00
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/tratamientos"
+        name: Listar Tratamientos
+        meta:
+          id: req_rt_listar_tratamientos
+          created: 1750000000031
+          modified: 1750000000031
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ── CITAS ────────────────────────────────────────────────────────
+  - name: Citas
+    meta:
+      id: fld_rt_citas
+      created: 1750000000004
+      modified: 1750000000004
+    children:
+      - url: "{{ _.base_url }}/api/citas/slots-disponibles?fecha={{ _.cita_fecha }}&tratamientoId={{ _.tratamiento_id }}"
+        name: Consultar Slots Disponibles
+        meta:
+          id: req_rt_slots_disponibles
+          created: 1750000000040
+          modified: 1750000000040
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.paciente_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas"
+        name: Crear Cita
+        meta:
+          id: req_rt_crear_cita
+          created: 1750000000041
+          modified: 1750000000041
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "pacienteId": "{{ _.paciente_id }}",
+              "dentistaId": "{{ _.cita_dentista_id }}",
+              "tratamientoId": "{{ _.tratamiento_id }}",
+              "fecha": "{{ _.cita_fecha }}",
+              "horaInicio": "{{ _.cita_hora_inicio }}",
+              "motivo": "Cita de prueba de regresion"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.paciente_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas"
+        name: Listar Todas las Citas
+        meta:
+          id: req_rt_listar_citas
+          created: 1750000000042
+          modified: 1750000000042
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.secretaria_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}/aprobar"
+        name: Aprobar Cita
+        meta:
+          id: req_rt_aprobar_cita
+          created: 1750000000043
+          modified: 1750000000043
+        method: PATCH
+        authentication:
+          type: bearer
+          token: "{{ _.secretaria_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/mi-agenda"
+        name: Mi Agenda Doctor
+        meta:
+          id: req_rt_mi_agenda_doctor
+          created: 1750000000044
+          modified: 1750000000044
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.doctor_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ── INVENTARIO ───────────────────────────────────────────────────
+  - name: Inventario
+    meta:
+      id: fld_rt_inventario
+      created: 1750000000005
+      modified: 1750000000005
+    children:
+      - url: "{{ _.base_url }}/api/inventory/category"
+        name: Crear Categoria
+        meta:
+          id: req_rt_crear_categoria
+          created: 1750000000050
+          modified: 1750000000050
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "{{ _.categoria_nombre }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/categories"
+        name: Listar Categorias
+        meta:
+          id: req_rt_listar_categorias
+          created: 1750000000051
+          modified: 1750000000051
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory"
+        name: Crear Producto
+        meta:
+          id: req_rt_crear_producto
+          created: 1750000000052
+          modified: 1750000000052
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "{{ _.product_name }}",
+              "description": "{{ _.product_description }}",
+              "purchasePrice": 10.00,
+              "salePrice": 25.00,
+              "categoryId": "{{ _.current_cat_id }}",
+              "quantity": 20
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory"
+        name: Listar Productos
+        meta:
+          id: req_rt_listar_productos
+          created: 1750000000053
+          modified: 1750000000053
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.admin_token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+# ══════════════════════════════════════════════════════════════════
+# TEST SUITES
+# ══════════════════════════════════════════════════════════════════
+test_suites:
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 1: Login Admin
+  # Verifica que las credenciales de admin funcionan y captura el JWT.
+  # Todos los tests siguientes dependen de admin_token.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 1: Login Admin"
+    meta:
+      id: uts_rt_test1
+      created: 1750000000100
+      modified: 1750000000100
+    tests:
+      - name: "Login con credenciales admin → 200 y JWT con rol ADMIN"
+        meta:
+          id: utst_rt_t1_login
+        code: |
+          const res = await insomnia.send('req_rt_login_admin');
+
+          expect(res.status).toBe(200);
+
+          const body = JSON.parse(res.body);
+          expect(body.token).toBeDefined();
+          expect(body.user).toBeDefined();
+          expect(body.user.role).toBe('ADMIN');
+
+          insomnia.setEnvironmentVariable('admin_token', body.token);
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 2: Listar doctores y verificar dentistId
+  # Lista doctores con rol DOCTOR. Si alguno no tiene dentistId
+  # (vinculo con entidad Dentist), hace PATCH para re-asignar el
+  # rol y disparar la vinculacion automatica. Verifica al final.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 2: Listar y verificar doctores"
+    meta:
+      id: uts_rt_test2
+      created: 1750000000200
+      modified: 1750000000200
+    tests:
+      - name: "GET /api/users/doctors → lista con al menos un doctor"
+        meta:
+          id: utst_rt_t2_listar
+        code: |
+          const res = await insomnia.send('req_rt_listar_doctores');
+
+          expect(res.status).toBe(200);
+          const doctors = JSON.parse(res.body);
+          expect(Array.isArray(doctors)).toBe(true);
+          expect(doctors.length).toBeGreaterThan(0);
+
+      - name: "Doctores sin dentistId → PATCH de rol para forzar vinculacion"
+        meta:
+          id: utst_rt_t2_patch
+        code: |
+          const res = await insomnia.send('req_rt_listar_doctores');
+          const doctors = JSON.parse(res.body);
+
+          for (const doc of doctors) {
+            if (!doc.dentistId) {
+              insomnia.setEnvironmentVariable('patch_rol_user_id', String(doc.id));
+              insomnia.setEnvironmentVariable('patch_rol_nuevo_rol', 'DOCTOR');
+              const patchRes = await insomnia.send('req_rt_patch_cambiar_rol');
+              expect(patchRes.status).toBe(200);
+            }
+          }
+
+      - name: "GET /api/users/doctors → todos los doctores tienen dentistId"
+        meta:
+          id: utst_rt_t2_verificar
+        code: |
+          const res = await insomnia.send('req_rt_listar_doctores');
+
+          expect(res.status).toBe(200);
+          const doctors = JSON.parse(res.body);
+
+          for (const doc of doctors) {
+            expect(doc.dentistId).toBeDefined();
+            expect(doc.dentistId).not.toBeNull();
+          }
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 3: Crear tratamiento
+  # Crea el tratamiento "Limpieza Regresion" que se usara en
+  # test 5 para crear la cita. Guarda tratamiento_id.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 3: Crear tratamiento"
+    meta:
+      id: uts_rt_test3
+      created: 1750000000300
+      modified: 1750000000300
+    tests:
+      - name: "POST /api/tratamientos → 201 con id y nombre"
+        meta:
+          id: utst_rt_t3_crear
+        code: |
+          const res = await insomnia.send('req_rt_crear_tratamiento');
+
+          expect(res.status).toBe(201);
+          const tratamiento = JSON.parse(res.body);
+          expect(tratamiento.id).toBeDefined();
+          expect(tratamiento.nombre).toBe('Limpieza Regresion');
+          expect(tratamiento.duracionMinutos).toBe(60);
+
+          insomnia.setEnvironmentVariable('tratamiento_id', String(tratamiento.id));
+
+      - name: "GET /api/tratamientos → lista contiene el tratamiento creado"
+        meta:
+          id: utst_rt_t3_listar
+        code: |
+          const res = await insomnia.send('req_rt_listar_tratamientos');
+
+          expect(res.status).toBe(200);
+          const lista = JSON.parse(res.body);
+          expect(Array.isArray(lista)).toBe(true);
+
+          const found = lista.find(t => t.nombre === 'Limpieza Regresion');
+          expect(found).toBeDefined();
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 4: Crear paciente de prueba
+  # Registra el paciente de prueba (omite si ya existe).
+  # Hace login y captura paciente_token y paciente_id del response.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 4: Crear paciente de prueba"
+    meta:
+      id: uts_rt_test4
+      created: 1750000000400
+      modified: 1750000000400
+    tests:
+      - name: "POST /api/auth/register paciente → 200 o ya existia"
+        meta:
+          id: utst_rt_t4_register
+        code: |
+          const res = await insomnia.send('req_rt_register_paciente');
+          // 200 = creado; 400/409 = ya existe — ambos son aceptables
+          const isOk = res.status === 200 || res.status === 400 || res.status === 409;
+          expect(isOk).toBe(true);
+
+      - name: "POST /api/auth/login paciente → 200 y captura token + id"
+        meta:
+          id: utst_rt_t4_login
+        code: |
+          const res = await insomnia.send('req_rt_login_paciente');
+
+          expect(res.status).toBe(200);
+          const body = JSON.parse(res.body);
+          expect(body.token).toBeDefined();
+          expect(body.user.id).toBeDefined();
+
+          insomnia.setEnvironmentVariable('paciente_token', body.token);
+          insomnia.setEnvironmentVariable('paciente_id', String(body.user.id));
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 5: Paciente lista citas disponibles y crea cita
+  # Usa tratamiento_id del test 3 y paciente_token del test 4.
+  # Toma el primer slot disponible y crea la cita.
+  # Guarda cita_id para test 7.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 5: Paciente crea cita"
+    meta:
+      id: uts_rt_test5
+      created: 1750000000500
+      modified: 1750000000500
+    tests:
+      - name: "GET /api/tratamientos → recupera y confirma tratamiento de regresion"
+        meta:
+          id: utst_rt_t5_tratamientos
+        code: |
+          const res = await insomnia.send('req_rt_listar_tratamientos');
+
+          expect(res.status).toBe(200);
+          const lista = JSON.parse(res.body);
+          expect(lista.length).toBeGreaterThan(0);
+
+          const tratamiento = lista.find(t => t.nombre === 'Limpieza Regresion') || lista[0];
+          expect(tratamiento).toBeDefined();
+          insomnia.setEnvironmentVariable('tratamiento_id', String(tratamiento.id));
+
+      - name: "GET /api/citas/slots-disponibles → hay slots para la fecha y tratamiento"
+        meta:
+          id: utst_rt_t5_slots
+        code: |
+          const res = await insomnia.send('req_rt_slots_disponibles');
+
+          expect(res.status).toBe(200);
+          const slots = JSON.parse(res.body);
+          expect(Array.isArray(slots)).toBe(true);
+          expect(slots.length).toBeGreaterThan(0);
+          expect(slots[0].horasDisponibles.length).toBeGreaterThan(0);
+
+          insomnia.setEnvironmentVariable('cita_dentista_id', String(slots[0].dentistaId));
+          insomnia.setEnvironmentVariable('cita_hora_inicio', String(slots[0].horasDisponibles[0]));
+
+      - name: "POST /api/citas → 201 y estadoCita es PENDIENTE"
+        meta:
+          id: utst_rt_t5_crear_cita
+        code: |
+          const res = await insomnia.send('req_rt_crear_cita');
+
+          expect(res.status).toBe(201);
+          const cita = JSON.parse(res.body);
+          expect(cita.id).toBeDefined();
+          expect(cita.estadoCita).toBe('PENDIENTE');
+          expect(cita.pacienteId).toBeDefined();
+          expect(cita.tratamientoNombre).toBe('Limpieza Regresion');
+
+          insomnia.setEnvironmentVariable('cita_id', String(cita.id));
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 6: Crear usuario secretaria
+  # Registra la secretaria de prueba (omite si ya existe).
+  # Captura secretaria_id desde el login response.
+  # Admin hace PATCH para asignar rol SECRETARIA.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 6: Crear usuario secretaria"
+    meta:
+      id: uts_rt_test6
+      created: 1750000000600
+      modified: 1750000000600
+    tests:
+      - name: "POST /api/auth/register secretaria → 200 o ya existia"
+        meta:
+          id: utst_rt_t6_register
+        code: |
+          const res = await insomnia.send('req_rt_register_secretaria');
+          const isOk = res.status === 200 || res.status === 400 || res.status === 409;
+          expect(isOk).toBe(true);
+
+      - name: "POST /api/auth/login secretaria → 200 y captura token + id"
+        meta:
+          id: utst_rt_t6_login
+        code: |
+          const res = await insomnia.send('req_rt_login_secretaria');
+
+          expect(res.status).toBe(200);
+          const body = JSON.parse(res.body);
+          expect(body.token).toBeDefined();
+          expect(body.user.id).toBeDefined();
+
+          insomnia.setEnvironmentVariable('secretaria_token', body.token);
+          insomnia.setEnvironmentVariable('secretaria_id', String(body.user.id));
+
+      - name: "PATCH /api/users/{id}/rol → admin cambia rol a SECRETARIA"
+        meta:
+          id: utst_rt_t6_patch_rol
+        code: |
+          insomnia.setEnvironmentVariable('patch_rol_user_id', insomnia.environment.secretaria_id);
+          insomnia.setEnvironmentVariable('patch_rol_nuevo_rol', 'SECRETARIA');
+
+          const res = await insomnia.send('req_rt_patch_cambiar_rol');
+
+          expect(res.status).toBe(200);
+          const body = JSON.parse(res.body);
+          expect(body.role).toBe('SECRETARIA');
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 7: Secretaria lista y aprueba cita
+  # Usa secretaria_token del test 6 y cita_id del test 5.
+  # Verifica que la cita pasa de PENDIENTE a CONFIRMADA.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 7: Secretaria aprueba cita"
+    meta:
+      id: uts_rt_test7
+      created: 1750000000700
+      modified: 1750000000700
+    tests:
+      - name: "GET /api/citas → secretaria ve la cita PENDIENTE"
+        meta:
+          id: utst_rt_t7_listar
+        code: |
+          const res = await insomnia.send('req_rt_listar_citas');
+
+          expect(res.status).toBe(200);
+          const citas = JSON.parse(res.body);
+          expect(Array.isArray(citas)).toBe(true);
+
+          const citaId = insomnia.environment.cita_id;
+          const cita = citas.find(c => String(c.id) === citaId);
+          expect(cita).toBeDefined();
+          expect(cita.estadoCita).toBe('PENDIENTE');
+
+      - name: "PATCH /api/citas/{id}/aprobar → 200 y estadoCita CONFIRMADA"
+        meta:
+          id: utst_rt_t7_aprobar
+        code: |
+          const res = await insomnia.send('req_rt_aprobar_cita');
+
+          expect(res.status).toBe(200);
+          const cita = JSON.parse(res.body);
+          expect(cita.estadoCita).toBe('CONFIRMADA');
+
+      - name: "GET /api/citas → cita aparece como CONFIRMADA"
+        meta:
+          id: utst_rt_t7_verificar
+        code: |
+          const res = await insomnia.send('req_rt_listar_citas');
+
+          expect(res.status).toBe(200);
+          const citas = JSON.parse(res.body);
+          const citaId = insomnia.environment.cita_id;
+          const cita = citas.find(c => String(c.id) === citaId);
+
+          expect(cita).toBeDefined();
+          expect(cita.estadoCita).toBe('CONFIRMADA');
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 8: Doctor verifica citas
+  # Usa credenciales pre-existentes: doctor1@dentalcloud.com.
+  # Independiente del resto — no requiere datos de tests anteriores.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 8: Doctor verifica su agenda"
+    meta:
+      id: uts_rt_test8
+      created: 1750000000800
+      modified: 1750000000800
+    tests:
+      - name: "POST /api/auth/login doctor → 200 y rol DOCTOR"
+        meta:
+          id: utst_rt_t8_login
+        code: |
+          const res = await insomnia.send('req_rt_login_doctor');
+
+          expect(res.status).toBe(200);
+          const body = JSON.parse(res.body);
+          expect(body.token).toBeDefined();
+          expect(body.user.role).toBe('DOCTOR');
+
+          insomnia.setEnvironmentVariable('doctor_token', body.token);
+
+      - name: "GET /api/citas/mi-agenda → 200 y lista de citas del doctor"
+        meta:
+          id: utst_rt_t8_agenda
+        code: |
+          const res = await insomnia.send('req_rt_mi_agenda_doctor');
+
+          expect(res.status).toBe(200);
+          const agenda = JSON.parse(res.body);
+          expect(Array.isArray(agenda)).toBe(true);
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 9: Crear categorias de inventario
+  # Crea Materiales, Productos y Medicinas.
+  # Guarda los IDs de cada categoria para test 10.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 9: Crear categorias de inventario"
+    meta:
+      id: uts_rt_test9
+      created: 1750000000900
+      modified: 1750000000900
+    tests:
+      - name: "POST /api/inventory/category × 3 → 201 por cada categoria"
+        meta:
+          id: utst_rt_t9_crear
+        code: |
+          const categorias = ['Materiales', 'Productos', 'Medicinas'];
+          const ids = {};
+
+          for (const nombre of categorias) {
+            insomnia.setEnvironmentVariable('categoria_nombre', nombre);
+            const res = await insomnia.send('req_rt_crear_categoria');
+            expect(res.status).toBe(201);
+            const cat = JSON.parse(res.body);
+            expect(cat.id).toBeDefined();
+            expect(cat.name).toBe(nombre);
+            ids[nombre] = String(cat.id);
+          }
+
+          insomnia.setEnvironmentVariable('cat_materiales_id', ids['Materiales']);
+          insomnia.setEnvironmentVariable('cat_productos_id', ids['Productos']);
+          insomnia.setEnvironmentVariable('cat_medicinas_id', ids['Medicinas']);
+
+      - name: "GET /api/inventory/categories → contiene las 3 categorias creadas"
+        meta:
+          id: utst_rt_t9_listar
+        code: |
+          const res = await insomnia.send('req_rt_listar_categorias');
+
+          expect(res.status).toBe(200);
+          const lista = JSON.parse(res.body);
+          expect(Array.isArray(lista)).toBe(true);
+
+          const nombres = lista.map(c => c.name);
+          expect(nombres).toContain('Materiales');
+          expect(nombres).toContain('Productos');
+          expect(nombres).toContain('Medicinas');
+
+  # ──────────────────────────────────────────────────────────────
+  # TEST 10: Crear productos por categoria
+  # Usa category IDs del test 9.
+  # Crea 3 productos por categoria (9 en total) en un loop.
+  # ──────────────────────────────────────────────────────────────
+  - name: "Test 10: Crear productos por categoria"
+    meta:
+      id: uts_rt_test10
+      created: 1750000001000
+      modified: 1750000001000
+    tests:
+      - name: "POST /api/inventory × 9 → 201 y datos correctos por cada producto"
+        meta:
+          id: utst_rt_t10_crear
+        code: |
+          const env = insomnia.environment;
+          const catalogo = [
+            {
+              catId: env.cat_materiales_id,
+              productos: [
+                { name: 'Guantes de Latex', description: 'Caja de 100 guantes desechables talla M' },
+                { name: 'Mascarillas Quirurgicas', description: 'Caja de 50 mascarillas N95' },
+                { name: 'Agujas Dentales', description: 'Caja de 100 agujas calibre 27G' }
+              ]
+            },
+            {
+              catId: env.cat_productos_id,
+              productos: [
+                { name: 'Resina Compuesta A2', description: 'Resina para restauraciones anteriores' },
+                { name: 'Cemento de Ionomero', description: 'Cemento de ionomero de vidrio 15g' },
+                { name: 'Amalgama Dental', description: 'Aleacion de plata para obturaciones' }
+              ]
+            },
+            {
+              catId: env.cat_medicinas_id,
+              productos: [
+                { name: 'Lidocaina 2%', description: 'Cartucho de anestesia local 1.8ml' },
+                { name: 'Ibuprofeno 400mg', description: 'Antiinflamatorio postoperatorio' },
+                { name: 'Clindamicina 300mg', description: 'Antibiotico de amplio espectro' }
+              ]
+            }
+          ];
+
+          for (const cat of catalogo) {
+            for (const prod of cat.productos) {
+              insomnia.setEnvironmentVariable('product_name', prod.name);
+              insomnia.setEnvironmentVariable('product_description', prod.description);
+              insomnia.setEnvironmentVariable('current_cat_id', cat.catId);
+
+              const res = await insomnia.send('req_rt_crear_producto');
+              expect(res.status).toBe(201);
+              const created = JSON.parse(res.body);
+              expect(created.id).toBeDefined();
+              expect(created.name).toBe(prod.name);
+            }
+          }
+
+      - name: "GET /api/inventory → lista tiene al menos 9 productos"
+        meta:
+          id: utst_rt_t10_listar
+        code: |
+          const res = await insomnia.send('req_rt_listar_productos');
+
+          expect(res.status).toBe(200);
+          const productos = JSON.parse(res.body);
+          expect(Array.isArray(productos)).toBe(true);
+          expect(productos.length).toBeGreaterThanOrEqual(9);
+
+# ══════════════════════════════════════════════════════════════════
+# ENVIRONMENTS
+# ══════════════════════════════════════════════════════════════════
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_rt_default
+    created: 1750000000000
+    modified: 1750000000000
+
+environments:
+  name: Test
+  meta:
+    id: env_rt_test_001
+    created: 1750000000000
+    modified: 1750000000000
+    isPrivate: false
+  data:
+    base_url: "http://localhost:8080"
+    # ── Admin ──────────────────────────────────
+    admin_email: "admin@dentalcloud.com"
+    admin_password: "Admin123!"
+    admin_token: ""
+    # ── Doctor (usuario pre-existente en BD) ───
+    doctor_email: "doctor1@dentalcloud.com"
+    doctor_password: "Doctor123!"
+    doctor_token: ""
+    # ── Test Paciente ──────────────────────────
+    paciente_email: "test.paciente@dentalcloud.com"
+    paciente_password: "Test1234!"
+    paciente_token: ""
+    paciente_id: ""
+    # ── Test Secretaria ────────────────────────
+    secretaria_email: "test.secretaria@dentalcloud.com"
+    secretaria_password: "Test1234!"
+    secretaria_token: ""
+    secretaria_id: ""
+    # ── Helpers dinamicos (se sobreescriben en runtime) ──
+    patch_rol_user_id: ""
+    patch_rol_nuevo_rol: ""
+    categoria_nombre: ""
+    product_name: ""
+    product_description: ""
+    current_cat_id: ""
+    # ── Tratamiento ───────────────────────────
+    tratamiento_id: ""
+    # ── Cita ──────────────────────────────────
+    cita_fecha: "2026-07-07"
+    cita_dentista_id: ""
+    cita_hora_inicio: ""
+    cita_id: ""
+    # ── Inventario ────────────────────────────
+    cat_materiales_id: ""
+    cat_productos_id: ""
+    cat_medicinas_id: ""
