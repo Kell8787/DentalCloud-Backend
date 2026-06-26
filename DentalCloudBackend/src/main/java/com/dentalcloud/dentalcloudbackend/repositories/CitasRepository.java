@@ -29,6 +29,13 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
 
     List<Citas> findByDentist(Dentist dentist);
 
+    boolean existsByDentistAndHoraLessThanAndHoraFinGreaterThanAndEstadoCitaInAndIdNot(
+            Dentist dentist,
+            LocalDateTime horaFin,
+            LocalDateTime hora,
+            List<EstadoCita> estados,
+            UUID id
+    );
     List<Citas> findByFechaCitaAndEstadoCita(String fechaCita, EstadoCita estado);
 
     List<Citas> findByEstadoCita(EstadoCita estado);

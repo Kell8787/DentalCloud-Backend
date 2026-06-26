@@ -706,6 +706,65 @@ collection:
             store: true
           rebuildPath: true
 
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}"
+        name: Editar cita (PUT)
+        meta:
+          id: req_citas_editar_001
+          created: 1750300000001
+          modified: 1750300000001
+          isPrivate: false
+          description: "Edita una cita en estado PENDIENTE. Todos los campos son opcionales (null = conserva el valor actual). CUSTOMER solo puede editar sus propias citas; staff puede editar cualquiera. Devuelve 200 OK con CitaResponseDTO actualizado."
+          sortKey: -2544
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "dentistaId": "{{ _.dentista_id }}",
+              "tratamientoId": "{{ _.tratamiento_id }}",
+              "fecha": "2026-06-25",
+              "horaInicio": "10:00",
+              "motivo": "Revisión actualizada"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}"
+        name: Eliminar cita pendiente (DELETE)
+        meta:
+          id: req_citas_eliminar_001
+          created: 1750300000002
+          modified: 1750300000002
+          isPrivate: false
+          description: "Soft delete de una cita en estado PENDIENTE — pasa a ELIMINADA. Solo el dueño (CUSTOMER) puede ejecutarlo. Devuelve 204 No Content."
+          sortKey: -2542
+        method: DELETE
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
       - url: "{{ _.base_url }}/api/citas"
         name: Listar todas las citas — admin (GET)
         meta:
