@@ -348,7 +348,7 @@ public class CitaService {
         User paciente = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
 
-        return citasRepository.findByUser(paciente)
+        return citasRepository.findByUserAndEstadoCitaNot(paciente, EstadoCita.ELIMINADA)
                 .stream()
                 .map(this::mapearCitaAResponse)
                 .toList();
