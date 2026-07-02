@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface CitasRepository extends JpaRepository<Citas, UUID> {
     List<Citas> findAll();
 
+    List<Citas> findByUserAndEstadoCitaNot(User user, EstadoCita estadoCita);
+
     List<Citas> findByFechaCita(String fechaCita);
 
     boolean existsByDentistAndHoraLessThanAndHoraFinGreaterThanAndEstadoCitaIn(
