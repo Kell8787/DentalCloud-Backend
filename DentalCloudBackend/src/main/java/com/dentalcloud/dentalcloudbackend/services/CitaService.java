@@ -371,11 +371,11 @@ public class CitaService {
         if (fecha != null && estado != null) {
             citas = citasRepository.findByFechaCitaAndEstadoCita(fecha.toString(), estado);
         } else if (fecha != null) {
-            citas = citasRepository.findByFechaCita(fecha.toString());
+            citas = citasRepository.findByFechaCitaAndEstadoCitaNot(fecha.toString(), EstadoCita.ELIMINADA);
         } else if (estado != null) {
             citas = citasRepository.findByEstadoCita(estado);
         } else {
-            citas = citasRepository.findAll();
+            citas = citasRepository.findByEstadoCitaNot(EstadoCita.ELIMINADA);
         }
 
         return citas.stream()

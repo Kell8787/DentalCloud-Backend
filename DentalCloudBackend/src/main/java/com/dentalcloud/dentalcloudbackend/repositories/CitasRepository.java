@@ -41,4 +41,8 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
     List<Citas> findByFechaCitaAndEstadoCita(String fechaCita, EstadoCita estado);
 
     List<Citas> findByEstadoCita(EstadoCita estado);
+
+    List<Citas> findByEstadoCitaNot(EstadoCita estado);
+
+    List<Citas> findByFechaCitaAndEstadoCitaNot(String fechaCita, EstadoCita estado);
 }
