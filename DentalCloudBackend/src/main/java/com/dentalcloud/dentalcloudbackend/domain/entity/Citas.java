@@ -1,6 +1,7 @@
 package com.dentalcloud.dentalcloudbackend.domain.entity;
 
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
+import com.dentalcloud.dentalcloudbackend.domain.enums.MotivoCancelacion;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -53,8 +54,8 @@ public class Citas {
     @Column(nullable = false)
     private LocalDateTime horaFin; // El fin de la cita
 
-    @Column(columnDefinition = "TEXT")
-    private String motivoCancelacion;
+    @Enumerated(EnumType.STRING)
+    private MotivoCancelacion motivoCancelacion;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

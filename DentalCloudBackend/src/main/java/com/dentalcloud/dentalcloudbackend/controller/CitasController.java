@@ -1,6 +1,7 @@
 package com.dentalcloud.dentalcloudbackend.controller;
 import com.dentalcloud.dentalcloudbackend.domain.dto.*;
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
+import com.dentalcloud.dentalcloudbackend.domain.enums.MotivoCancelacion;
 import com.dentalcloud.dentalcloudbackend.services.CitaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,10 +55,14 @@ public class CitasController {
     @PreAuthorize("hasAnyRole('CUSTOMER', 'DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> cancelarCita(
             @PathVariable UUID id,
-            @RequestBody(required = false) CancelarCitaRequestDTO request,
+            @Valid @RequestBody CancelarCitaRequestDTO request,
             @AuthenticationPrincipal UserDetails userDetails) {
-        if (request == null) request = new CancelarCitaRequestDTO();
         return ResponseEntity.ok(citasService.cancelarCita(id, userDetails.getUsername(), request));
+    }
+
+    @GetMapping("/motivos-cancelacion")
+    public ResponseEntity<List<MotivoCancelacion>> obtenerMotivosCancelacion() {
+        return ResponseEntity.ok(List.of(MotivoCancelacion.values()));
     }
 
     @PutMapping("/{id}")

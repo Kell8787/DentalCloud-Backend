@@ -910,9 +910,41 @@ collection:
           created: 1774398371047
           modified: 1774398371047
           isPrivate: false
-          description: "El paciente cancela su propia cita (PENDIENTE o CONFIRMADA). Requiere más de 24 h de anticipación. Roles: CUSTOMER, DOCTOR, SECRETARIA, ADMIN."
+          description: "El paciente cancela su propia cita (PENDIENTE o CONFIRMADA). Requiere más de 24 h de anticipación. motivoCancelacion es obligatorio y debe ser uno de los valores devueltos por GET /api/citas/motivos-cancelacion. Roles: CUSTOMER, DOCTOR, SECRETARIA, ADMIN."
           sortKey: -2100
         method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "motivoCancelacion": "EMERGENCIA"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/motivos-cancelacion"
+        name: Listar motivos de cancelación (GET)
+        meta:
+          id: req_citas_motivos_cancelacion_001
+          created: 1774398371048
+          modified: 1774398371048
+          isPrivate: false
+          description: "Retorna la lista de motivos válidos para cancelar una cita (enum MotivoCancelacion), pensada para poblar el selector del frontend. Devuelve 200 OK con un array de strings, ej. [\"EMERGENCIA\", \"CONFLICTO_HORARIO\", \"VIAJE\", \"ERROR_AL_AGENDAR\", \"PROBLEMAS_SALUD\"]."
+          sortKey: -2090
+        method: GET
         authentication:
           type: bearer
           token: "{{ _.token }}"

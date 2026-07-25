@@ -1,6 +1,7 @@
 package com.dentalcloud.dentalcloudbackend.domain.dto;
 
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
+import com.dentalcloud.dentalcloudbackend.domain.enums.MotivoCancelacion;
 import lombok.Builder;
 import lombok.Data;
 
@@ -33,6 +34,6 @@ public class CitaResponseDTO {
     private String motivo;
     private EstadoCita estadoCita;
 
-    private String motivoCancelacion;
+    private MotivoCancelacion motivoCancelacion;
 
 }
