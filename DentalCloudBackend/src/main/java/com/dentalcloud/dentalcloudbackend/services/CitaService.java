@@ -212,10 +212,6 @@ public class CitaService {
 
         cita.setEstadoCita(EstadoCita.CANCELADA);
 
-        if(request.getMotivo() != null && !request.getMotivo().isBlank()){
-            cita.setMotivoCancelacion(request.getMotivo());
-        }
-
         Citas citaActualizada = citasRepository.save(cita);
         return mapearCitaAResponse(citaActualizada);
     }
@@ -247,10 +243,7 @@ public class CitaService {
             throw new BusinessException("No se puede cancelar una cita con menos de 24 horas de anticipación");
         }
 
-        if (request.getMotivoCancelacion() != null && !request.getMotivoCancelacion().isBlank()) {
-            cita.setMotivoCancelacion(request.getMotivoCancelacion());
-        }
-
+        cita.setMotivoCancelacion(request.getMotivoCancelacion());
         cita.setEstadoCita(EstadoCita.CANCELADA);
         Citas citaActualizada = citasRepository.save(cita);
         return mapearCitaAResponse(citaActualizada);

@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +48,12 @@ public class GlobalExceptionHandler {
 
         errores.put("fields", fields);
         return new ResponseEntity<>(errores, HttpStatus.BAD_REQUEST);
+    }
+
+    // 📦 Error: body faltante o valor inválido (ej. un enum que no existe en la lista permitida)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+        return buildError(HttpStatus.BAD_REQUEST, "El cuerpo de la petición es inválido o falta un campo requerido.");
     }
 
     // ⚠️ Error: validaciones tipo @NotBlank, @Email directos
