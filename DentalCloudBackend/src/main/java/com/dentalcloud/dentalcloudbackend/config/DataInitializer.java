@@ -43,7 +43,7 @@ public class DataInitializer implements CommandLineRunner {
                 .birthDate(LocalDate.of(1990, 1, 1))
                 .email(adminEmail)
                 .password(passwordEncoder.encode("Admin123!"))
-                .phoneNumber("00000000")
+                .phoneNumber("0000-0000")
                 .role(Rol.ADMIN)
                 .build();
 
@@ -53,8 +53,8 @@ public class DataInitializer implements CommandLineRunner {
 
     // ====== DATOS DE PRUEBA — eliminar este metodo y su llamada en run() ======
     private void crearDoctoresPrueba() {
-        crearDoctor("Carlos", "Martinez", "doctor1@dentalcloud.com", "1111111111", "11111111");
-        crearDoctor("Maria", "Lopez", "doctor2@dentalcloud.com", "2222222222", "22222222");
+        crearDoctor("Carlos", "Martinez", "doctor1@dentalcloud.com", "1111111111", "1111-1111");
+        crearDoctor("Maria", "Lopez", "doctor2@dentalcloud.com", "2222222222", "2222-2222");
     }
 
     private void crearDoctor(String firstName, String lastName, String email, String dui, String phone) {

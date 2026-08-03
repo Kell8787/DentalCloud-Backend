@@ -13,7 +13,7 @@ public class ActualizarContactoEmergenciaRequestDTO {
     @Email(message = "El email no es válido")
     private String email;
 
-    @Pattern(regexp = "^[0-9]{8}$", message = "El teléfono debe tener 8 dígitos")
+    @Pattern(regexp = "^[0-9]{4}-[0-9]{4}$", message = "El teléfono debe tener el formato xxxx-xxxx")
     private String phoneNumber;
 
     @Pattern(regexp = "MADRE|PADRE|HERMANO|HERMANA|PAREJA|TUTOR|OTRO", message = "Parentesco no válido")
