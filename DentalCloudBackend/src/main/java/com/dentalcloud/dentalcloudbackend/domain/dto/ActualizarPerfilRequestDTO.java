@@ -24,7 +24,7 @@ public class ActualizarPerfilRequestDTO {
     @Size(min = 5, max = 100, message = "La dirección debe tener entre 5 y 100 caracteres")
     private String direccion;
 
-    @Pattern(regexp = "^[0-9]{8}$", message = "El teléfono debe tener 8 dígitos")
+    @Pattern(regexp = "^[0-9]{4}-[0-9]{4}$", message = "El teléfono debe tener el formato xxxx-xxxx")
     private String phoneNumber;
 
     @Pattern(regexp = "MASCULINO|FEMENINO", message = "El género debe ser MASCULINO o FEMENINO")
