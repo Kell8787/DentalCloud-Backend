@@ -3,11 +3,14 @@ package com.dentalcloud.dentalcloudbackend.controller;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RegisterPatientRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.UserResponseDTO;
 import com.dentalcloud.dentalcloudbackend.services.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -61,5 +64,10 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("valid", false, "message", e.getMessage()));
         }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> currentUser(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(authService.currentUser(userDetails.getUsername()));
     }
 }

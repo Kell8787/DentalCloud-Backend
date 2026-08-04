@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -114,7 +115,7 @@ public class AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> {
                     log.warn("Usuario no encontrado: {}", request.getEmail());
-                    return new EntityNotFoundException("Credenciales inválidas");
+                    return new BadCredentialsException("Credenciales inválidas");
                 });
 
         log.info("Usuario encontrado: {}", user.getEmail());
@@ -127,7 +128,7 @@ public class AuthService {
             authManager.authenticate(auth);
         } catch (Exception e) {
             log.warn("Contraseña incorrecta para: {}", request.getEmail());
-            throw new EntityNotFoundException("Credenciales inválidas");
+            throw new BadCredentialsException("Credenciales inválidas");
         }
 
         // Generar token JWT
@@ -135,21 +136,35 @@ public class AuthService {
         log.info("Token generado para: {}", user.getEmail());
 
         // Crear respuesta con UUID convertido a String si es necesario
-        UserResponseDTO userResponse = UserResponseDTO.builder()
+        return AuthResponseDTO.builder()
+                .token(token)
+                .user(toUserResponse(user))
+                .message("Login exitoso")
+                .build();
+    }
+
+    @Transactional
+    public UserResponseDTO currentUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Usuario autenticado no encontrado"));
+        return toUserResponse(user);
+    }
+
+    private UserResponseDTO toUserResponse(User user) {
+        return UserResponseDTO.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
                 .secondName(user.getSecondName())
                 .lastName(user.getLastName())
                 .secondLastName(user.getSecondLastName())
+                .direccion(user.getDireccion())
                 .genero(String.valueOf(user.getGenero()))
                 .dui(user.getDui())
+                .birthDate(user.getBirthDate())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole().name())
-                .build();
-
-        return AuthResponseDTO.builder()
-                .token(token)
-                .user(userResponse)
-                .message("Login exitoso")
+                .active(true)
                 .build();
     }
 

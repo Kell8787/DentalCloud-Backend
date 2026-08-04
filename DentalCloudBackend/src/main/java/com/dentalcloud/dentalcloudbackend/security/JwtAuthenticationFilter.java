@@ -1,6 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.security;
 
-import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -68,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String username;
         try {
             username = jwtService.extractUsername(jwt);
-        } catch (ExpiredJwtException e) {
+        } catch (JwtException e) {
             filterChain.doFilter(request, response);
             return;
         }

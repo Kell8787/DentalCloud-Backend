@@ -35,8 +35,8 @@ public class UserService {
                             .firstName(user.getFirstName())
                             .lastName(user.getLastName())
                             .email(user.getEmail())
-                            .phoneNumber(user.getPhoneNumber())
-                            .build();
+                .phoneNumber(user.getPhoneNumber())
+                .build();
                 })
                 .toList();
     }
@@ -73,6 +73,7 @@ public class UserService {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole().name())
+                .active(true)
                 .build();
     }
 }
