@@ -4,6 +4,8 @@ import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
+import com.dentalcloud.dentalcloudbackend.repositories.DentistRepository;
+import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -19,11 +21,13 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final DentistRepository dentistRepository;
 
     @Override
     public void run(String... args) {
         crearAdmin();
         crearDoctoresPrueba(); // TODO: eliminar cuando ya no se necesiten datos de prueba
+        sincronizarDentistas();
     }
 
     private void crearAdmin() {
@@ -58,7 +62,9 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void crearDoctor(String firstName, String lastName, String email, String dui, String phone) {
-        if (userRepository.findByEmail(email).isPresent()) {
+        var existingDoctor = userRepository.findByEmail(email);
+        if (existingDoctor.isPresent()) {
+            ensureDentist(existingDoctor.get());
             log.info("Doctor {} ya existe", email);
             return;
         }
@@ -76,8 +82,23 @@ public class DataInitializer implements CommandLineRunner {
                 .role(Rol.DOCTOR)
                 .build();
 
-        userRepository.save(doctor);
+        User savedDoctor = userRepository.save(doctor);
+        ensureDentist(savedDoctor);
         log.info("Doctor {} creado para pruebas", email);
+    }
+
+    private void ensureDentist(User doctor) {
+        if (dentistRepository.findByUser(doctor).isEmpty()) {
+            dentistRepository.save(Dentist.builder()
+                    .Name(doctor.getFirstName() + " " + doctor.getLastName())
+                    .user(doctor)
+                    .build());
+            log.info("Dentist asociado creado para {}", doctor.getEmail());
+        }
+    }
+
+    private void sincronizarDentistas() {
+        userRepository.findByRole(Rol.DOCTOR).forEach(this::ensureDentist);
     }
     // ====== FIN DATOS DE PRUEBA ======
 }

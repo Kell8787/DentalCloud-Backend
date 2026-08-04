@@ -1,116 +1,115 @@
 package com.dentalcloud.dentalcloudbackend.handlers;
 
+import com.dentalcloud.dentalcloudbackend.domain.dto.ApiErrorResponse;
 import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
+import com.dentalcloud.dentalcloudbackend.security.TraceIdFilter;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
-import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.util.HashMap;
+import jakarta.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 🔒 Error: correo no registrado
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleUsernameNotFound(UsernameNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, "El correo ingresado no está registrado.");
+    @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
+    public ResponseEntity<ApiErrorResponse> handleAuthentication(HttpServletRequest request, Exception ex) {
+        return error(request, HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Las credenciales no son válidas.");
     }
 
-    // 🔐 Error: contraseña incorrecta
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
-        return buildError(HttpStatus.UNAUTHORIZED, "La contraseña ingresada no es válida.");
-    }
-
-    // ✍️ Error: validaciones de @Valid en DTOs
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
-        Map<String, Object> errores = new HashMap<>();
-        errores.put("timestamp", LocalDateTime.now());
-        errores.put("status", HttpStatus.BAD_REQUEST.value());
-        errores.put("error", "Error de validación");
-        Map<String, String> fields = new HashMap<>();
-
-        ex.getBindingResult().getFieldErrors().forEach(e ->
-                fields.put(e.getField(), e.getDefaultMessage())
-        );
-
-        errores.put("fields", fields);
-        return new ResponseEntity<>(errores, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ApiErrorResponse> handleValidation(HttpServletRequest request,
+                                                              MethodArgumentNotValidException ex) {
+        Map<String, String> fieldErrors = new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(fieldError ->
+                fieldErrors.put(fieldError.getField(), fieldError.getDefaultMessage()));
+        return error(request, HttpStatus.UNPROCESSABLE_ENTITY, "VALIDATION_ERROR",
+                "Uno o más campos no son válidos.", fieldErrors);
     }
 
-    // 📦 Error: body faltante o valor inválido (ej. un enum que no existe en la lista permitida)
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, Object>> handleMessageNotReadable(HttpMessageNotReadableException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "El cuerpo de la petición es inválido o falta un campo requerido.");
-    }
-
-    // ⚠️ Error: validaciones tipo @NotBlank, @Email directos
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "Datos inválidos: " + ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleConstraintViolation(HttpServletRequest request,
+                                                                       ConstraintViolationException ex) {
+        return error(request, HttpStatus.UNPROCESSABLE_ENTITY, "VALIDATION_ERROR",
+                "Uno o más campos no son válidos.");
     }
 
-    // 🚨 Error: RuntimeExceptions personalizadas como "correo ya existe"
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleMessageNotReadable(HttpServletRequest request,
+                                                                      HttpMessageNotReadableException ex) {
+        return error(request, HttpStatus.BAD_REQUEST, "MALFORMED_REQUEST",
+                "El cuerpo de la petición es inválido o falta un campo requerido.");
     }
 
-    // 💥 Fallback: errores no controlados
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneral(Exception ex) {
-        ex.printStackTrace(); // para que lo veas en consola
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado." + ex.getMessage());
-    }
-
-    @ExceptionHandler(ParseException.class)
-    public ResponseEntity<Map<String, Object>> handleParseException(ParseException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, "Error al parsear la fecha: " + ex.getMessage());
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleEntityNotFoundException(EntityNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException ex) {
-        return buildError(HttpStatus.NOT_FOUND, ex.getMessage());
+    @ExceptionHandler({EntityNotFoundException.class, ResourceNotFoundException.class})
+    public ResponseEntity<ApiErrorResponse> handleNotFound(HttpServletRequest request, Exception ex) {
+        return error(request, HttpStatus.NOT_FOUND, "RESOURCE_NOT_FOUND", ex.getMessage());
     }
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Map<String, Object>> handleBusiness(BusinessException ex) {
-        return buildError(HttpStatus.UNPROCESSABLE_ENTITY, ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleBusiness(HttpServletRequest request, BusinessException ex) {
+        return error(request, HttpStatus.UNPROCESSABLE_ENTITY, "BUSINESS_RULE_VIOLATION", ex.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        return buildError(HttpStatus.CONFLICT, "Ya existe un registro con esos datos. Verifica los campos únicos.");
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(HttpServletRequest request,
+                                                                           DataIntegrityViolationException ex) {
+        return error(request, HttpStatus.CONFLICT, "UNIQUE_CONSTRAINT_VIOLATION",
+                "Ya existe un registro con esos datos. Verifica los campos únicos.");
     }
 
-    // 🛠️ Utilidad para construir la respuesta
-    private ResponseEntity<Map<String, Object>> buildError(HttpStatus status, String mensaje) {
-        Map<String, Object> error = new HashMap<>();
-        error.put("timestamp", LocalDateTime.now());
-        error.put("status", status.value());
-        error.put("error", mensaje);
-        return new ResponseEntity<>(error, status);
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiErrorResponse> handleRequestError(HttpServletRequest request, RuntimeException ex) {
+        return error(request, HttpStatus.BAD_REQUEST, "REQUEST_INVALID", ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrorResponse> handleGeneral(HttpServletRequest request, Exception ex) {
+        String traceId = traceId(request);
+        log.error("Error no controlado traceId={}", traceId, ex);
+        return error(request, HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR",
+                "Ocurrió un error inesperado.");
+    }
+
+    private ResponseEntity<ApiErrorResponse> error(HttpServletRequest request,
+                                                   HttpStatus status,
+                                                   String code,
+                                                   String message) {
+        return error(request, status, code, message, Map.of());
+    }
+
+    private ResponseEntity<ApiErrorResponse> error(HttpServletRequest request,
+                                                   HttpStatus status,
+                                                   String code,
+                                                   String message,
+                                                   Map<String, String> fieldErrors) {
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .status(status.value())
+                .code(code)
+                .message(message == null ? status.getReasonPhrase() : message)
+                .fieldErrors(fieldErrors)
+                .traceId(traceId(request))
+                .timestamp(Instant.now())
+                .build();
+        return ResponseEntity.status(status).body(response);
+    }
+
+    private String traceId(HttpServletRequest request) {
+        Object value = request.getAttribute(TraceIdFilter.TRACE_ID_ATTRIBUTE);
+        return value == null ? "unknown" : value.toString();
     }
 }

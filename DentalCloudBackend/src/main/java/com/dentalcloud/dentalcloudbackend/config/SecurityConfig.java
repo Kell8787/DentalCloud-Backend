@@ -1,10 +1,14 @@
 package com.dentalcloud.dentalcloudbackend.config;
 
+import com.dentalcloud.dentalcloudbackend.domain.dto.ApiErrorResponse;
 import com.dentalcloud.dentalcloudbackend.security.JwtAuthenticationFilter;
+import com.dentalcloud.dentalcloudbackend.security.TraceIdFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -15,6 +19,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -31,6 +37,8 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
+    private final TraceIdFilter traceIdFilter;
+    private final ObjectMapper objectMapper;
 
     /*
         Configura la cadena de filtros de seguridad HTTP.
@@ -52,9 +60,42 @@ public class SecurityConfig {
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(authenticationEntryPoint())
+                        .accessDeniedHandler(accessDeniedHandler()))
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(traceIdFilter, JwtAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, exception) -> writeSecurityError(
+                request, response, HttpStatus.UNAUTHORIZED,
+                "AUTHENTICATION_REQUIRED", "Se requiere una sesión válida.");
+    }
+
+    private AccessDeniedHandler accessDeniedHandler() {
+        return (request, response, exception) -> writeSecurityError(
+                request, response, HttpStatus.FORBIDDEN,
+                "ACCESS_DENIED", "No tienes permisos para realizar esta acción.");
+    }
+
+    private void writeSecurityError(jakarta.servlet.http.HttpServletRequest request,
+                                    jakarta.servlet.http.HttpServletResponse response,
+                                    HttpStatus status,
+                                    String code,
+                                    String message) throws java.io.IOException {
+        String traceId = (String) request.getAttribute(TraceIdFilter.TRACE_ID_ATTRIBUTE);
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+        objectMapper.writeValue(response.getOutputStream(), ApiErrorResponse.builder()
+                .status(status.value())
+                .code(code)
+                .message(message)
+                .traceId(traceId)
+                .timestamp(java.time.Instant.now())
+                .build());
     }
 
     /*

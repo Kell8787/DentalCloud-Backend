@@ -27,4 +27,5 @@ public class UserResponseDTO {
     private String email;
     private String phoneNumber;
     private String role;
+    private boolean active;
 }
