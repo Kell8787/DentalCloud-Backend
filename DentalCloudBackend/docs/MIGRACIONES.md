@@ -17,7 +17,15 @@ docker compose up -d --build
 
 El perfil `test` usa una base H2 efímera para validar el arranque y la
 compatibilidad básica entre Flyway y las entidades. La validación definitiva
-de PostgreSQL debe hacerse con Testcontainers como parte de `F0-QA-01`.
+de PostgreSQL se ejecuta con Testcontainers:
+
+```bash
+./mvnw -B -Dtest=PostgreSqlFlywayIntegrationTest test
+```
+
+La prueba crea un contenedor efímero de PostgreSQL 16, ejecuta el baseline,
+valida las entidades con `ddl-auto: validate` y comprueba el seed de doctores.
+Docker debe estar disponible antes de ejecutar el comando.
 
 ## Base existente creada por Hibernate
 

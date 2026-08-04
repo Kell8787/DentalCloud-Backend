@@ -16,6 +16,7 @@ Backend REST API para la gestión de una clínica dental. Construido con **Sprin
 - [Endpoints — Citas](#-endpoints--citas)
 - [Roles y permisos](#-roles-y-permisos)
 - [Migraciones](#-migraciones)
+- [Pruebas](#-pruebas)
 - [Colección Insomnia](#-colección-insomnia)
 
 ---
@@ -159,6 +160,28 @@ modifica automáticamente.
 
 La guía completa está en
 [`docs/MIGRACIONES.md`](./DentalCloudBackend/docs/MIGRACIONES.md).
+
+## ✅ Pruebas
+
+Desde `DentalCloud-Backend/DentalCloudBackend`:
+
+```bash
+# Suite completa: contexto con H2 y PostgreSQL/Flyway con Testcontainers
+./mvnw -B verify
+```
+
+Si el archivo perdió el permiso de ejecución después de descargarlo, puede
+usarse el equivalente portable:
+
+```bash
+bash mvnw -B verify
+```
+
+La prueba `PostgreSqlFlywayIntegrationTest` necesita Docker disponible. Levanta
+un PostgreSQL efímero, ejecuta la migración `V1__baseline_current_schema.sql`,
+valida el esquema con Hibernate (`ddl-auto: validate`) y comprueba que el seed
+de doctores se puede crear sobre PostgreSQL real. No reutiliza el contenedor de
+desarrollo ni modifica la base local.
 
 ---
 
