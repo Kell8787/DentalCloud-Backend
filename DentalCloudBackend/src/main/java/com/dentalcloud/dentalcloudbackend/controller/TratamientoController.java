@@ -40,7 +40,6 @@ public class TratamientoController {
     public ResponseEntity<TratamientoResponseDTO> crearTratamiento(@Valid @RequestBody TratamientoRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(tratamientoService.crearTratamiento(request));
     }
-
     @PatchMapping("/{id}/estado")
     @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<TratamientoResponseDTO> cambiarEstado(

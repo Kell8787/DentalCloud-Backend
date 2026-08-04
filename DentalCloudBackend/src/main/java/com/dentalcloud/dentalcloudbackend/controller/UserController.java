@@ -27,7 +27,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/rol")
-    @PreAuthorize("hasAnyRole('ADMIN', 'DOCTOR')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDTO> cambiarRol(
             @PathVariable UUID id,
             @Valid @RequestBody CambiarRolRequestDTO request) {
