@@ -4,9 +4,9 @@ services:
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_USER: DentalAdmin
-      POSTGRES_PASSWORD: Deathofadream
-      POSTGRES_DB: DentalCloudDB
+      POSTGRES_USER: ${POSTGRES_USER:?Copy .env.example to .env and set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Copy .env.example to .env and set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-DentalCloudDB}
     ports:
       - "5432:5432"
     volumes:
@@ -29,14 +29,17 @@ services:
       postgres_db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/DentalCloudDB
-      SPRING_DATASOURCE_USERNAME: DentalAdmin
-      SPRING_DATASOURCE_PASSWORD: Deathofadream
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: true
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres_db:5432/DentalCloudDB}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?Copy .env.example to .env and set SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Copy .env.example to .env and set SPRING_DATASOURCE_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-local}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-validate}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-false}
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: ${SPRING_FLYWAY_BASELINE_ON_MIGRATE:-true}
+      SPRING_FLYWAY_BASELINE_VERSION: ${SPRING_FLYWAY_BASELINE_VERSION:-1}
 
-      JWT_SECRET: "DxrhaPyjpbGBNAaAB56GG3mEk/EC5gN71DKgYX6ZTAPX7p1W7aASiH81gV9sQWD4btTfUOqu3jWoUMok4SPWZA=="
-      JWT_EXPIRATION_MS: "1296000000"
+      JWT_SECRET: ${JWT_SECRET:?Copy .env.example to .env and set JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-1296000000}
 
 volumes:
   postgres_data:

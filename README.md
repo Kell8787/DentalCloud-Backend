@@ -15,6 +15,8 @@ Backend REST API para la gestión de una clínica dental. Construido con **Sprin
 - [Endpoints — Inventario](#-endpoints--inventario)
 - [Endpoints — Citas](#-endpoints--citas)
 - [Roles y permisos](#-roles-y-permisos)
+- [Migraciones](#-migraciones)
+- [Pruebas](#-pruebas)
 - [Colección Insomnia](#-colección-insomnia)
 
 ---
@@ -74,6 +76,15 @@ cd DentalCloud-Backend/DentalCloudBackend
 
 ### 2. Construir y levantar los contenedores
 
+Crear el archivo local de variables a partir del ejemplo. El archivo `.env`
+no debe subirse al repositorio.
+
+```bash
+cp .env.example .env
+```
+
+Reemplaza los valores de contraseña y `JWT_SECRET` antes de usar el entorno.
+
 ```bash
 docker compose up -d
 ```
@@ -118,16 +129,59 @@ docker compose down -v
 
 ## ⚙️ Variables de entorno
 
-Las siguientes variables están definidas directamente en `docker-compose.yml`. Para entornos de producción se recomienda moverlas a un archivo `.env`.
+Las variables se cargan desde `.env` mediante Docker Compose. Usa
+`.env.example` como plantilla y no subas `.env`.
 
 | Variable | Valor de ejemplo / por defecto | Descripción |
 |---|---|---|
+| `POSTGRES_USER` | `DentalAdmin` | Usuario de PostgreSQL |
+| `POSTGRES_PASSWORD` | *(definida en `.env`)* | Contraseña de PostgreSQL |
+| `POSTGRES_DB` | `DentalCloudDB` | Base de datos de PostgreSQL |
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://<host>:5432/<db_name>` | URL de conexión a PostgreSQL |
 | `SPRING_DATASOURCE_USERNAME` | *(usuario configurado)* | Usuario de la base de datos |
 | `SPRING_DATASOURCE_PASSWORD` | *(contraseña configurada)* | Contraseña de la base de datos |
-| `SPRING_JPA_HIBERNATE_DDL_AUTO` | `update` | Estrategia DDL de Hibernate |
-| `JWT_SECRET` | *(clave secreta en base64)* | Clave secreta para firmar los JWT |
+| `SPRING_JPA_HIBERNATE_DDL_AUTO` | `validate` | Hibernate valida el esquema; Flyway aplica las migraciones |
+| `SPRING_FLYWAY_BASELINE_ON_MIGRATE` | `true` solo para local | Registra una base legacy sin borrar datos |
+| `SPRING_FLYWAY_BASELINE_VERSION` | `1` | Versión usada para el baseline inicial |
+| `JWT_SECRET` | *(definida en `.env`)* | Clave secreta para firmar los JWT |
 | `JWT_EXPIRATION_MS` | `1296000000` | Expiración del token en ms (15 días) |
+
+## 🗃 Migraciones
+
+La estructura de PostgreSQL se versiona con Flyway. Hibernate usa
+`ddl-auto: validate`, por lo que valida las tablas pero no las crea ni las
+modifica automáticamente.
+
+- Una base nueva ejecuta `V1__baseline_current_schema.sql` al arrancar.
+- Una base existente debe respaldarse y arrancar una vez con el perfil `local`
+  para registrar el baseline sin borrar datos.
+- Los cambios posteriores deben agregarse como migraciones nuevas y no se deben
+  editar después de ejecutarse en un entorno compartido.
+
+La guía completa está en
+[`docs/MIGRACIONES.md`](./DentalCloudBackend/docs/MIGRACIONES.md).
+
+## ✅ Pruebas
+
+Desde `DentalCloud-Backend/DentalCloudBackend`:
+
+```bash
+# Suite completa: contexto con H2 y PostgreSQL/Flyway con Testcontainers
+./mvnw -B verify
+```
+
+Si el archivo perdió el permiso de ejecución después de descargarlo, puede
+usarse el equivalente portable:
+
+```bash
+bash mvnw -B verify
+```
+
+La prueba `PostgreSqlFlywayIntegrationTest` necesita Docker disponible. Levanta
+un PostgreSQL efímero, ejecuta la migración `V1__baseline_current_schema.sql`,
+valida el esquema con Hibernate (`ddl-auto: validate`) y comprueba que el seed
+de doctores se puede crear sobre PostgreSQL real. No reutiliza el contenedor de
+desarrollo ni modifica la base local.
 
 ---
 
