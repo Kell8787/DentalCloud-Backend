@@ -103,6 +103,10 @@ public class TreatmentPlanService {
         PatientTreatmentPlan plan = plan(planId);
         User actor = actor(actorEmail);
         assertCanWrite(plan, actor);
+        if (plan.getStatus() == TreatmentPlanStatus.COMPLETED
+                || plan.getStatus() == TreatmentPlanStatus.CANCELLED) {
+            throw new BusinessException("No se pueden modificar pasos de un plan cerrado");
+        }
         if (request.getStatus() != null) {
             if (!allowedTransition(plan.getStatus(), request.getStatus())) {
                 throw new BusinessException("La transición del plan no está permitida");
@@ -158,6 +162,10 @@ public class TreatmentPlanService {
         PatientTreatmentPlan plan = plan(planId);
         User actor = actor(actorEmail);
         assertCanWrite(plan, actor);
+        if (plan.getStatus() == TreatmentPlanStatus.COMPLETED
+                || plan.getStatus() == TreatmentPlanStatus.CANCELLED) {
+            throw new BusinessException("No se pueden modificar pasos de un plan cerrado");
+        }
         TreatmentStep step = stepRepository.findById(stepId)
                 .filter(item -> item.getPlanId().equals(planId))
                 .orElseThrow(() -> new ResourceNotFoundException("Paso no encontrado"));
@@ -218,6 +226,9 @@ public class TreatmentPlanService {
 
     private void assertCanWrite(PatientTreatmentPlan plan, User actor) {
         assertClinicalActor(actor);
+        if (actor.getRole() == Rol.ADMIN) {
+            return;
+        }
         assertDoctorOwnsDentist(actor, dentistRepository.findById(plan.getDentistId())
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado")));
     }
@@ -239,7 +250,11 @@ public class TreatmentPlanService {
     }
 
     private TreatmentPlanProgressDTO progress(PatientTreatmentPlan plan) {
-        List<TreatmentStep> steps = stepRepository.findByPlanIdOrderByPositionAsc(plan.getId());
+        return progress(plan.getId());
+    }
+
+    private TreatmentPlanProgressDTO progress(UUID planId) {
+        List<TreatmentStep> steps = stepRepository.findByPlanIdOrderByPositionAsc(planId);
         int total = steps.size();
         int completed = (int) steps.stream().filter(step -> step.getStatus() == TreatmentStepStatus.COMPLETED).count();
         BigDecimal percentage = total == 0 ? BigDecimal.ZERO
@@ -280,6 +295,7 @@ public class TreatmentPlanService {
                 .completedBy(step.getCompletedBy())
                 .observation(step.getObservation())
                 .createdAt(step.getCreatedAt())
+                .progress(progress(step.getPlanId()))
                 .version(step.getVersion())
                 .build();
     }

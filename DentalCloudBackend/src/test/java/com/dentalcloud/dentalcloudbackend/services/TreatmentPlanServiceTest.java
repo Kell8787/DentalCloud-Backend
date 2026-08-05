@@ -4,6 +4,8 @@ import com.dentalcloud.dentalcloudbackend.domain.entity.PatientTreatmentPlan;
 import com.dentalcloud.dentalcloudbackend.domain.entity.TreatmentStep;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
+import com.dentalcloud.dentalcloudbackend.domain.enums.TreatmentPlanStatus;
+import com.dentalcloud.dentalcloudbackend.domain.dto.UpdateTreatmentStepRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.enums.TreatmentStepStatus;
 import com.dentalcloud.dentalcloudbackend.repositories.DentistRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.PatientTreatmentPlanRepository;
@@ -77,5 +79,44 @@ class TreatmentPlanServiceTest {
 
         assertThatThrownBy(() -> service.get(plan.getId(), "other@example.com"))
                 .isInstanceOf(com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException.class);
+    }
+
+    @Test
+    void returnsUpdatedProgressWhenCompletingStep() {
+        UUID planId = UUID.randomUUID();
+        UUID stepId = UUID.randomUUID();
+        User admin = User.builder().id(UUID.randomUUID()).email("admin@example.com").role(Rol.ADMIN).build();
+        PatientTreatmentPlan plan = PatientTreatmentPlan.builder().id(planId).patientId(UUID.randomUUID())
+                .dentistId(UUID.randomUUID()).status(TreatmentPlanStatus.ACTIVE).version(0L).build();
+        TreatmentStep step = TreatmentStep.builder().id(stepId).planId(planId).title("Consulta")
+                .position(1).status(TreatmentStepStatus.PENDING).version(0L).build();
+        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
+        when(stepRepository.findById(stepId)).thenReturn(Optional.of(step));
+        when(stepRepository.save(step)).thenReturn(step);
+        when(stepRepository.findByPlanIdOrderByPositionAsc(planId)).thenReturn(List.of(step));
+        UpdateTreatmentStepRequestDTO request = new UpdateTreatmentStepRequestDTO();
+        request.setStatus(TreatmentStepStatus.COMPLETED);
+
+        var response = service.updateStep(planId, stepId, request, admin.getEmail());
+
+        assertThat(response.getStatus()).isEqualTo(TreatmentStepStatus.COMPLETED);
+        assertThat(response.getProgress().getCompletedSteps()).isEqualTo(1);
+        assertThat(response.getProgress().getPercentage()).isEqualByComparingTo("100.00");
+    }
+
+    @Test
+    void rejectsStepChangesAfterPlanIsClosed() {
+        UUID planId = UUID.randomUUID();
+        User admin = User.builder().id(UUID.randomUUID()).email("admin@example.com").role(Rol.ADMIN).build();
+        PatientTreatmentPlan plan = PatientTreatmentPlan.builder().id(planId).patientId(UUID.randomUUID())
+                .dentistId(UUID.randomUUID()).status(TreatmentPlanStatus.COMPLETED).version(0L).build();
+        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(userRepository.findByEmail(admin.getEmail())).thenReturn(Optional.of(admin));
+
+        assertThatThrownBy(() -> service.updateStep(planId, UUID.randomUUID(),
+                new UpdateTreatmentStepRequestDTO(), admin.getEmail()))
+                .isInstanceOf(com.dentalcloud.dentalcloudbackend.exceptions.BusinessException.class)
+                .hasMessageContaining("plan cerrado");
     }
 }

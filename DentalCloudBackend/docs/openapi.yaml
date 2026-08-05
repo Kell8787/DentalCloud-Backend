@@ -1154,6 +1154,7 @@ components:
           enum: [PENDING, COMPLETED, SKIPPED]
         completedAt: { type: string, format: date-time, nullable: true }
         observation: { type: string, nullable: true }
+        progress: { $ref: '#/components/schemas/TreatmentProgress' }
     AftercareInstruction:
       type: object
       required: [id, appointmentId, patientId, title, body, priority]

@@ -20,4 +20,5 @@ public class TreatmentStepResponseDTO {
     private String observation;
     private Instant createdAt;
     private Long version;
+    private TreatmentPlanProgressDTO progress;
 }
