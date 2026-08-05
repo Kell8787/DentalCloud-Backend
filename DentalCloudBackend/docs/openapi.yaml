@@ -1,0 +1,635 @@
+openapi: 3.1.0
+info:
+  title: DentalCloud API
+  version: 0.1.0
+  description: |
+    Contrato inicial compartido para las fases 1–3 de DentalCloud.
+    Las fechas y horas se transportan en ISO-8601 y la zona de negocio es
+    America/El_Salvador. Los errores usan siempre el esquema ApiError.
+servers:
+  - url: http://localhost:8080
+    description: Desarrollo local
+tags:
+  - name: Auth
+  - name: Patients
+  - name: Appointments
+  - name: Treatments
+  - name: Clinical
+  - name: Inventory
+paths:
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Inicia sesión
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRequest'
+            example:
+              email: paciente@example.com
+              password: '********'
+      responses:
+        '200':
+          description: Sesión creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Devuelve el usuario autenticado
+      operationId: getCurrentUser
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuario vigente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/citas/disponibilidad:
+    get:
+      tags: [Appointments]
+      summary: Consulta slots disponibles
+      operationId: getAvailability
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Date'
+        - name: planId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Slots con doctor, inicio y fin
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilitySlot'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/citas/solicitudes:
+    post:
+      tags: [Appointments]
+      summary: Solicita una cita para el paciente autenticado
+      operationId: requestAppointment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequest'
+            example:
+              treatmentPlanId: 6d4c2cc6-9d74-4c26-a2ed-bd39c67e7e31
+              startsAt: '2026-08-12T09:00:00-06:00'
+              reason: Control de seguimiento
+      responses:
+        '201':
+          description: Solicitud creada en estado SOLICITADA
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/SlotConflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /api/citas:
+    post:
+      tags: [Appointments]
+      summary: Crea una cita desde personal autorizado
+      operationId: createAppointment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffAppointmentRequest'
+      responses:
+        '201':
+          description: Cita creada en estado CONFIRMADA
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/SlotConflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    get:
+      tags: [Appointments]
+      summary: Lista citas filtradas y paginadas para personal
+      operationId: listAppointments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          schema: { type: string, format: date-time }
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AppointmentStatus'
+        - name: patientId
+          in: query
+          schema: { type: string, format: uuid }
+        - name: doctorId
+          in: query
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de citas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAppointment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/citas/mias:
+    get:
+      tags: [Appointments]
+      summary: Lista las citas del paciente autenticado
+      operationId: listOwnAppointments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [upcoming, history]
+            default: upcoming
+      responses:
+        '200':
+          description: Citas propias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/citas/{appointmentId}:
+    get:
+      tags: [Appointments]
+      summary: Obtiene el detalle de una cita
+      operationId: getAppointment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      responses:
+        '200':
+          description: Cita
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Appointments]
+      summary: Ejecuta una transición válida de la cita
+      operationId: transitionAppointment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentTransition'
+      responses:
+        '200':
+          description: Cita actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '409':
+          $ref: '#/components/responses/SlotConflict'
+        '422':
+          $ref: '#/components/responses/InvalidTransition'
+  /api/tratamientos:
+    get:
+      tags: [Treatments]
+      summary: Lista tratamientos activos
+      operationId: listTreatments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Catálogo de tratamientos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Treatment'
+  /api/patients/me/treatment-plans:
+    get:
+      tags: [Clinical]
+      summary: Lista los planes del paciente autenticado
+      operationId: listOwnTreatmentPlans
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Planes con progreso calculado por backend
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TreatmentPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/treatment-plans/{planId}:
+    get:
+      tags: [Clinical]
+      summary: Consulta un plan propio o clínicamente autorizado
+      operationId: getTreatmentPlan
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      responses:
+        '200':
+          description: Plan de tratamiento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreatmentPlan'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/patients/me/aftercare:
+    get:
+      tags: [Clinical]
+      summary: Lista instrucciones post-cita publicadas propias
+      operationId: listOwnAftercare
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Instrucciones publicadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AftercareInstruction'
+  /api/patients/me/documents:
+    get:
+      tags: [Clinical]
+      summary: Lista metadatos de documentos visibles al paciente
+      operationId: listOwnDocuments
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Documentos sin binarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClinicalDocument'
+  /api/inventory:
+    get:
+      tags: [Inventory]
+      summary: Lista inventario paginado
+      operationId: listInventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [SIN_STOCK, BAJO, DISPONIBLE]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de inventario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageInventory'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Date:
+      name: fecha
+      in: query
+      required: true
+      schema: { type: string, format: date }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 0, default: 0 }
+    Size:
+      name: size
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    AppointmentId:
+      name: appointmentId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+  schemas:
+    AuthRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password, writeOnly: true }
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token: { type: string }
+        user: { $ref: '#/components/schemas/User' }
+        message: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        firstName: { type: string }
+        lastName: { type: string }
+        role:
+          type: string
+          enum: [CUSTOMER, SECRETARIA, DOCTOR, ADMIN]
+    AppointmentStatus:
+      type: string
+      enum: [SOLICITADA, CONFIRMADA, RECHAZADA, CANCELADA, INASISTENCIA, COMPLETADA]
+    Appointment:
+      type: object
+      required: [id, patientId, doctorId, startsAt, endsAt, status]
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid }
+        treatmentPlanId: { type: string, format: uuid, nullable: true }
+        treatmentId: { type: string, format: uuid }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        reason: { type: string, maxLength: 2000 }
+        status: { $ref: '#/components/schemas/AppointmentStatus' }
+        source:
+          type: string
+          enum: [PATIENT_REQUEST, STAFF_CREATED]
+        rescheduledFromId: { type: string, format: uuid, nullable: true }
+    AppointmentRequest:
+      type: object
+      required: [treatmentPlanId, startsAt, reason]
+      properties:
+        treatmentPlanId: { type: string, format: uuid }
+        startsAt: { type: string, format: date-time }
+        reason: { type: string, minLength: 1, maxLength: 2000 }
+    StaffAppointmentRequest:
+      allOf:
+        - $ref: '#/components/schemas/AppointmentRequest'
+        - type: object
+          required: [patientId, doctorId]
+          properties:
+            patientId: { type: string, format: uuid }
+            doctorId: { type: string, format: uuid }
+    AppointmentTransition:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [ACEPTAR, RECHAZAR, CANCELAR, INASISTENCIA, COMPLETAR, REAGENDAR]
+        reason: { type: string, maxLength: 2000 }
+        startsAt: { type: string, format: date-time, nullable: true }
+    AvailabilitySlot:
+      type: object
+      required: [doctorId, startsAt, endsAt]
+      properties:
+        doctorId: { type: string, format: uuid }
+        doctorName: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+    Treatment:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        durationMinutes: { type: integer, minimum: 1 }
+        price: { type: number, format: decimal }
+        active: { type: boolean }
+    TreatmentPlan:
+      type: object
+      required: [id, patientId, treatmentId, doctorId, status, progress]
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        treatmentId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [PLANNED, ACTIVE, PAUSED, COMPLETED, CANCELLED]
+        progress:
+          type: object
+          required: [completedSteps, totalSteps, percentage]
+          properties:
+            completedSteps: { type: integer, minimum: 0 }
+            totalSteps: { type: integer, minimum: 0 }
+            percentage: { type: number, minimum: 0, maximum: 100 }
+        steps:
+          type: array
+          items: { $ref: '#/components/schemas/TreatmentStep' }
+    TreatmentStep:
+      type: object
+      required: [id, planId, title, position, status]
+      properties:
+        id: { type: string, format: uuid }
+        planId: { type: string, format: uuid }
+        title: { type: string }
+        position: { type: integer, minimum: 1 }
+        status:
+          type: string
+          enum: [PENDING, COMPLETED, SKIPPED]
+        completedAt: { type: string, format: date-time, nullable: true }
+        observation: { type: string, nullable: true }
+    AftercareInstruction:
+      type: object
+      required: [id, appointmentId, patientId, title, body, priority]
+      properties:
+        id: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        title: { type: string }
+        body: { type: string }
+        priority:
+          type: string
+          enum: [LOW, NORMAL, HIGH]
+        publishedAt: { type: string, format: date-time, nullable: true }
+    ClinicalDocument:
+      type: object
+      required: [id, patientId, documentType, title, mimeType, sizeBytes, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid, nullable: true }
+        planId: { type: string, format: uuid, nullable: true }
+        documentType: { type: string }
+        title: { type: string }
+        mimeType: { type: string }
+        sizeBytes: { type: integer, minimum: 1, format: int64 }
+        visibleToPatient: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    PageAppointment:
+      $ref: '#/components/schemas/Page'
+    PageInventory:
+      $ref: '#/components/schemas/Page'
+    Page:
+      type: object
+      required: [items, page, size, totalItems, totalPages]
+      properties:
+        items: { type: array, items: {} }
+        page: { type: integer, minimum: 0 }
+        size: { type: integer, minimum: 1 }
+        totalItems: { type: integer, minimum: 0, format: int64 }
+        totalPages: { type: integer, minimum: 0 }
+    ApiError:
+      type: object
+      required: [status, code, message, fieldErrors, traceId, timestamp]
+      properties:
+        status: { type: integer, example: 409 }
+        code: { type: string, example: APPOINTMENT_SLOT_TAKEN }
+        message: { type: string, example: Ese horario ya no está disponible. }
+        fieldErrors:
+          type: object
+          additionalProperties: { type: string }
+        traceId: { type: string, example: 8f2e8db4-4d11-4c3e-a37f-8be9c8bb75c9 }
+        timestamp: { type: string, format: date-time }
+  responses:
+    Unauthorized:
+      description: Sesión ausente o inválida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+          example:
+            status: 401
+            code: AUTHENTICATION_REQUIRED
+            message: Se requiere una sesión válida.
+            fieldErrors: {}
+            traceId: 8f2e8db4-4d11-4c3e-a37f-8be9c8bb75c9
+            timestamp: '2026-08-04T15:30:00Z'
+    Forbidden:
+      description: Rol o ownership insuficiente
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+          example:
+            status: 403
+            code: ACCESS_DENIED
+            message: No tienes permisos para realizar esta acción.
+            fieldErrors: {}
+            traceId: 8f2e8db4-4d11-4c3e-a37f-8be9c8bb75c9
+            timestamp: '2026-08-04T15:30:00Z'
+    NotFound:
+      description: Recurso inexistente o no visible para el actor
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+    ValidationError:
+      description: Regla de validación incumplida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+          example:
+            status: 422
+            code: VALIDATION_ERROR
+            message: Uno o más campos no son válidos.
+            fieldErrors:
+              reason: El motivo es requerido.
+            traceId: 8f2e8db4-4d11-4c3e-a37f-8be9c8bb75c9
+            timestamp: '2026-08-04T15:30:00Z'
+    SlotConflict:
+      description: Slot o versión ocupada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+          example:
+            status: 409
+            code: APPOINTMENT_SLOT_TAKEN
+            message: Ese horario ya no está disponible.
+            fieldErrors: {}
+            traceId: 8f2e8db4-4d11-4c3e-a37f-8be9c8bb75c9
+            timestamp: '2026-08-04T15:30:00Z'
+    InvalidTransition:
+      description: Transición de estado no permitida
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
+          example:
+            status: 422
+            code: INVALID_APPOINTMENT_TRANSITION
+            message: La cita no puede pasar de CANCELADA a CONFIRMADA.
+            fieldErrors: {}
+            traceId: 8f2e8db4-4d11-4c3e-a37f-8be9c8bb75c9
+            timestamp: '2026-08-04T15:30:00Z'
