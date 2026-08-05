@@ -133,6 +133,13 @@ auditoría inmutable. Un borrador puede editarse y finalizarse; una nota final
 solo se corrige mediante una nueva enmienda enlazada, conservando autor,
 motivo y timestamps de cada evento.
 
+## V12 — consultas de dashboards
+
+`V12__add_dashboard_query_indexes.sql` agrega un índice por `starts_at` para
+las agendas diarias generales. Las consultas de agenda cargan además paciente,
+dentista y tratamiento en una lectura agrupada para evitar N+1 críticos al
+mapear respuestas.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
