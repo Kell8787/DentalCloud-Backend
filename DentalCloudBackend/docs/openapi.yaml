@@ -161,25 +161,47 @@ paths:
           $ref: '#/components/responses/ValidationError'
     get:
       tags: [Appointments]
-      summary: Lista citas filtradas y paginadas para personal
-      operationId: listAppointments
+      summary: Lista histórica de citas para compatibilidad
+      operationId: listAppointmentsLegacy
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: fecha
+          in: query
+          schema: { type: string, format: date }
+        - name: estado
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de citas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Appointment' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/citas/paginadas:
+    get:
+      tags: [Appointments]
+      summary: Lista citas paginadas y filtradas para personal
+      operationId: listAppointmentsPaginated
       security:
         - bearerAuth: []
       parameters:
         - name: from
           in: query
-          schema: { type: string, format: date-time }
+          schema: { type: string, format: date }
         - name: to
           in: query
-          schema: { type: string, format: date-time }
+          schema: { type: string, format: date }
         - name: status
           in: query
-          schema:
-            $ref: '#/components/schemas/AppointmentStatus'
+          schema: { $ref: '#/components/schemas/AppointmentStatus' }
         - name: patientId
-          in: query
-          schema: { type: string, format: uuid }
-        - name: doctorId
           in: query
           schema: { type: string, format: uuid }
         - $ref: '#/components/parameters/Page'
@@ -189,12 +211,27 @@ paths:
           description: Página de citas
           content:
             application/json:
+              schema: { $ref: '#/components/schemas/PageAppointment' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/citas/{appointmentId}/historial:
+    get:
+      tags: [Appointments]
+      summary: Lista el historial inmutable de estados
+      operationId: listAppointmentStatusHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      responses:
+        '200':
+          description: Historial de transiciones
+          content:
+            application/json:
               schema:
-                $ref: '#/components/schemas/PageAppointment'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
+                type: array
+                items: { $ref: '#/components/schemas/AppointmentStatusEvent' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /api/citas/mias:
     get:
       tags: [Appointments]
@@ -568,6 +605,17 @@ components:
           type: string
           enum: [PATIENT_REQUEST, STAFF_CREATED]
         rescheduledFromId: { type: string, format: uuid, nullable: true }
+    AppointmentStatusEvent:
+      type: object
+      required: [id, appointmentId, toStatus, occurredAt]
+      properties:
+        id: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid }
+        fromStatus: { $ref: '#/components/schemas/AppointmentStatus', nullable: true }
+        toStatus: { $ref: '#/components/schemas/AppointmentStatus' }
+        reason: { type: string, nullable: true }
+        actorId: { type: string, format: uuid, nullable: true }
+        occurredAt: { type: string, format: date-time }
     AppointmentRequest:
       type: object
       required: [treatmentPlanId, startsAt, reason]

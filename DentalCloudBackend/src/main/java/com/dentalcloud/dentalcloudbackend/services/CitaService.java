@@ -1,6 +1,8 @@
 package com.dentalcloud.dentalcloudbackend.services;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.AppointmentRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.AppointmentPageResponseDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.AppointmentStatusEventResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AvailabilitySlotDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CancelarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
@@ -34,6 +36,8 @@ import com.dentalcloud.dentalcloudbackend.repositories.TratamientoRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -478,6 +482,43 @@ public class CitaService {
             appointments = appointments.stream().filter(item -> item.getStatus() == mapped).toList();
         }
         return appointments.stream().map(this::map).toList();
+    }
+
+    @Transactional
+    public AppointmentPageResponseDTO listarPaginado(int page,
+                                                      int size,
+                                                      AppointmentStatus status,
+                                                      LocalDate from,
+                                                      LocalDate to,
+                                                      UUID patientId) {
+        if (page < 0 || size < 1 || size > 100) {
+            throw new BusinessException("La paginación debe usar page >= 0 y size entre 1 y 100");
+        }
+        if (from != null && to != null && to.isBefore(from)) {
+            throw new BusinessException("El rango de fechas no es válido");
+        }
+        LocalDateTime fromAt = from == null ? null : from.atStartOfDay();
+        LocalDateTime toAt = to == null ? null : to.plusDays(1).atStartOfDay();
+        var result = citasRepository.search(status, fromAt, toAt, patientId,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "startsAt")));
+        return AppointmentPageResponseDTO.builder()
+                .items(result.getContent().stream().map(this::map).toList())
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalItems(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
+    }
+
+    @Transactional
+    public List<AppointmentStatusEventResponseDTO> obtenerHistorial(UUID appointmentId, String email) {
+        obtenerPorId(appointmentId, email);
+        return appointmentStatusEventRepository.findByAppointmentIdOrderByOccurredAtAsc(appointmentId)
+                .stream().map(event -> AppointmentStatusEventResponseDTO.builder()
+                        .id(event.getId()).appointmentId(event.getAppointmentId())
+                        .fromStatus(event.getFromStatus()).toStatus(event.getToStatus())
+                        .reason(event.getReason()).actorId(event.getActorId()).occurredAt(event.getOccurredAt())
+                        .build()).toList();
     }
 
     private Citas appointment(UUID id) {

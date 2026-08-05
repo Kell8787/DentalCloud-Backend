@@ -1,6 +1,8 @@
 package com.dentalcloud.dentalcloudbackend.controller;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.AppointmentRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.AppointmentPageResponseDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.AppointmentStatusEventResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AvailabilitySlotDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CancelarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
@@ -10,6 +12,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.StaffAppointmentRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
+import com.dentalcloud.dentalcloudbackend.domain.enums.AppointmentStatus;
 import com.dentalcloud.dentalcloudbackend.domain.enums.MotivoCancelacion;
 import com.dentalcloud.dentalcloudbackend.services.CitaService;
 import jakarta.validation.Valid;
@@ -119,12 +122,32 @@ public class CitasController {
         return ResponseEntity.ok(citasService.obtenerTodasLasCitas(fecha, estado));
     }
 
+    @GetMapping("/paginadas")
+    @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
+    public ResponseEntity<AppointmentPageResponseDTO> listarPaginado(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) AppointmentStatus status,
+            @RequestParam(name = "from", required = false) LocalDate from,
+            @RequestParam(name = "to", required = false) LocalDate to,
+            @RequestParam(name = "patientId", required = false) UUID patientId) {
+        return ResponseEntity.ok(citasService.listarPaginado(page, size, status, from, to, patientId));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> detalle(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(citasService.obtenerPorId(id, userDetails.getUsername()));
+    }
+
+    @GetMapping("/{id}/historial")
+    @PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
+    public ResponseEntity<List<AppointmentStatusEventResponseDTO>> historial(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.obtenerHistorial(id, userDetails.getUsername()));
     }
 
     @PatchMapping({"/{id}/aceptar", "/{id}/aprobar"})
