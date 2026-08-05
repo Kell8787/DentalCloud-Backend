@@ -10,6 +10,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.StaffAppointmentRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Citas;
+import com.dentalcloud.dentalcloudbackend.domain.entity.ClinicSchedule;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
 import com.dentalcloud.dentalcloudbackend.domain.entity.PatientTreatmentPlan;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Tratamiento;
@@ -23,6 +24,7 @@ import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ConflictException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.CitasRepository;
+import com.dentalcloud.dentalcloudbackend.repositories.ClinicScheduleRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.DentistRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.PatientTreatmentPlanRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.TratamientoRepository;
@@ -50,6 +52,7 @@ public class CitaService {
             EnumSet.of(AppointmentStatus.SOLICITADA, AppointmentStatus.CONFIRMADA);
 
     private final CitasRepository citasRepository;
+    private final ClinicScheduleRepository clinicScheduleRepository;
     private final UserRepository userRepository;
     private final TratamientoRepository tratamientoRepository;
     private final DentistRepository dentistRepository;
@@ -133,11 +136,12 @@ public class CitaService {
         }
         Tratamiento treatment = tratamientoRepository.findById(treatmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
-        LocalTime opening = LocalTime.of(8, 0);
-        LocalTime closing = closingTime(date.getDayOfWeek());
-        if (closing == null) {
+        ClinicSchedule schedule = scheduleFor(date.getDayOfWeek());
+        if (schedule == null || !schedule.isEnabled()) {
             return List.of();
         }
+        LocalTime opening = schedule.getOpensAt();
+        LocalTime closing = schedule.getClosesAt();
 
         List<AvailabilitySlotDTO> slots = new ArrayList<>();
         for (Dentist dentist : dentistRepository.findAll()) {
@@ -385,11 +389,12 @@ public class CitaService {
         if (startsAt == null || startsAt.isBefore(now())) {
             throw new BusinessException("La cita debe estar en el futuro");
         }
-        LocalTime closing = closingTime(startsAt.getDayOfWeek());
-        if (closing == null) {
-            throw new BusinessException("No se pueden crear citas los sábados");
+        ClinicSchedule schedule = scheduleFor(startsAt.getDayOfWeek());
+        if (schedule == null || !schedule.isEnabled()) {
+            throw new BusinessException("La clínica no atiende ese día");
         }
-        LocalTime opening = LocalTime.of(8, 0);
+        LocalTime opening = schedule.getOpensAt();
+        LocalTime closing = schedule.getClosesAt();
         LocalDateTime endsAt = startsAt.plusMinutes(durationMinutes);
         if (startsAt.toLocalTime().isBefore(opening)
                 || endsAt.toLocalTime().isAfter(closing.plusMinutes(15))) {
@@ -398,11 +403,8 @@ public class CitaService {
         return endsAt;
     }
 
-    private LocalTime closingTime(DayOfWeek day) {
-        if (day == DayOfWeek.SATURDAY) {
-            return null;
-        }
-        return day == DayOfWeek.SUNDAY ? LocalTime.of(12, 0) : LocalTime.of(16, 0);
+    private ClinicSchedule scheduleFor(DayOfWeek day) {
+        return clinicScheduleRepository.findByDayOfWeek(day.getValue()).orElse(null);
     }
 
     private LocalDate today() {

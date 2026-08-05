@@ -84,11 +84,19 @@ lo que se inicializa como `STAFF_CREATED` y queda documentada para auditoría.
 Los checks de intervalo, estado y origen, junto con los índices por doctor,
 paciente y fecha, protegen el nuevo modelo sin eliminar datos existentes.
 
+## V5 — horario configurable
+
+`V5__add_clinic_schedule.sql` crea `clinic_schedules` con un registro por día,
+semilla el horario actual de la clínica y permite deshabilitar días sin tocar
+el código de disponibilidad. La semilla conserva lunes-viernes de 08:00 a
+16:00, sábado cerrado y domingo de 08:00 a 12:00.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
 - `V2__add_inventory_stock_controls.sql`: controles de stock y movimientos.
 - `V3__add_clinical_plan_documents_instructions.sql`: esqueleto clínico.
 - `V4__migrate_appointments_to_typed_schedule.sql`: intervalo, estado y origen de citas.
-- `V5__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
+- `V5__add_clinic_schedule.sql`: horario semanal configurable.
+- `V6__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
 - No editar una migración que ya se ejecutó en un entorno compartido.
