@@ -372,6 +372,9 @@ public class CitaService {
         if (target == AppointmentStatus.INASISTENCIA && now().isBefore(appointment.getStartsAt())) {
             throw new BusinessException("La inasistencia solo puede registrarse cuando inicia la cita");
         }
+        if (target == AppointmentStatus.COMPLETADA && now().isBefore(appointment.getEndsAt())) {
+            throw new BusinessException("La cita solo puede completarse después de su hora de finalización");
+        }
         AppointmentStatus previous = appointment.getStatus();
         appointment.setStatus(target);
         if (reason != null && !reason.isBlank()) {
