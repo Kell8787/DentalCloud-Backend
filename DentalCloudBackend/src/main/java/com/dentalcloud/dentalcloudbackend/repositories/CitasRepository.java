@@ -38,6 +38,8 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
 
     List<Citas> findByUserAndStatusInOrderByStartsAtAsc(User user, Collection<AppointmentStatus> statuses);
 
+    List<Citas> findByUserIdOrderByStartsAtAsc(UUID patientId);
+
     List<Citas> findByUserAndStartsAtGreaterThanEqualAndStatusInOrderByStartsAtAsc(
             User user, LocalDateTime startsAt, Collection<AppointmentStatus> statuses);
 

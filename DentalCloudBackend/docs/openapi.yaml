@@ -113,6 +113,26 @@ paths:
               schema: { $ref: '#/components/schemas/User' }
         '409': { $ref: '#/components/responses/Conflict' }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/patients/{patientId}/clinical-record:
+    get:
+      tags: [Clinical]
+      summary: Consulta el expediente clínico agregado de un paciente
+      operationId: getClinicalRecord
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Resumen médico, citas, planes, instrucciones y documentos del paciente
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalRecord' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /api/admin/patients/{id}:
     patch:
       tags: [Patients]
@@ -952,6 +972,32 @@ components:
         documents:
           type: array
           items: { $ref: '#/components/schemas/ClinicalDocument' }
+    ClinicalRecord:
+      type: object
+      required: [patientId, patient, medicalSummary, appointments, plans,
+        aftercareInstructions, documents]
+      properties:
+        patientId: { type: string, format: uuid }
+        patient: { $ref: '#/components/schemas/User' }
+        medicalSummary: { $ref: '#/components/schemas/MedicalSummary' }
+        appointments:
+          type: array
+          items: { $ref: '#/components/schemas/Appointment' }
+        plans:
+          type: array
+          items: { $ref: '#/components/schemas/TreatmentPlan' }
+        aftercareInstructions:
+          type: array
+          items: { $ref: '#/components/schemas/AftercareInstruction' }
+        documents:
+          type: array
+          items: { $ref: '#/components/schemas/ClinicalDocument' }
+    MedicalSummary:
+      type: object
+      properties:
+        alergias: { type: array, items: { type: string } }
+        medicamentos: { type: array, items: { type: string } }
+        antecedentesMedicos: { type: string, nullable: true }
     SecretaryDashboard:
       type: object
       required: [weekOf, totalAppointments, requestedAppointments, confirmedAppointments,

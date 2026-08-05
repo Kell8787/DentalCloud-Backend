@@ -504,6 +504,22 @@ public class CitaService {
                 .map(this::map).toList();
     }
 
+    public List<CitaResponseDTO> obtenerCitasDeExpediente(UUID patientId, String actorEmail) {
+        User actor = userByEmail(actorEmail);
+        List<Citas> appointments = citasRepository.findByUserIdOrderByStartsAtAsc(patientId);
+        if (actor.getRole() == Rol.ADMIN) {
+            return appointments.stream().map(this::map).toList();
+        }
+        if (actor.getRole() != Rol.DOCTOR) {
+            throw new BusinessException("Solo el doctor o administrador puede consultar expedientes clínicos");
+        }
+        return appointments.stream()
+                .filter(appointment -> appointment.getDentist() != null
+                        && appointment.getDentist().getUser() != null
+                        && appointment.getDentist().getUser().getId().equals(actor.getId()))
+                .map(this::map).toList();
+    }
+
     public List<CitaResponseDTO> obtenerAgendaDoctor(String emailDoctor, LocalDate date) {
         Dentist dentist = dentistRepository.findByUserEmail(emailDoctor)
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));

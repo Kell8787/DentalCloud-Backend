@@ -95,6 +95,14 @@ public class ClinicalDocumentService {
     }
 
     @Transactional
+    public List<ClinicalDocumentResponseDTO> listForClinicalRecord(UUID patientId, String email) {
+        User actor = user(email);
+        return documentRepository.findByPatientIdOrderByCreatedAtDesc(patientId).stream()
+                .filter(document -> canAccess(document, actor))
+                .map(this::map).toList();
+    }
+
+    @Transactional
     public ClinicalDocumentResponseDTO get(UUID id, String email) {
         ClinicalDocument document = document(id);
         assertCanAccess(document, user(email));
@@ -193,6 +201,15 @@ public class ClinicalDocumentService {
             }
         }
         throw new ResourceNotFoundException("Documento no encontrado");
+    }
+
+    private boolean canAccess(ClinicalDocument document, User actor) {
+        try {
+            assertCanAccess(document, actor);
+            return true;
+        } catch (ResourceNotFoundException exception) {
+            return false;
+        }
     }
 
     private void validateFileType(MultipartFile file, String mimeType) {

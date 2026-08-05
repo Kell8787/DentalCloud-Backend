@@ -25,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class PatientService {
@@ -107,6 +109,22 @@ public class PatientService {
         dto.setMedicamentos(info.getMedicamentos());
         dto.setAntecedentesMedicos(info.getAntecedentesMedicos());
         return dto;
+    }
+
+    public InformacionMedicaDTO obtenerInformacionMedica(UUID patientId) {
+        User user = userRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+        InformacionMedica info = informacionMedicaRepository.findByUser(user).orElse(null);
+        InformacionMedicaDTO dto = new InformacionMedicaDTO();
+        dto.setAlergias(info == null || info.getAlergias() == null ? List.of() : info.getAlergias());
+        dto.setMedicamentos(info == null || info.getMedicamentos() == null ? List.of() : info.getMedicamentos());
+        dto.setAntecedentesMedicos(info == null ? null : info.getAntecedentesMedicos());
+        return dto;
+    }
+
+    public UserResponseDTO obtenerPerfil(UUID patientId) {
+        return mapearUserAResponse(userRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado")));
     }
 
     @Transactional

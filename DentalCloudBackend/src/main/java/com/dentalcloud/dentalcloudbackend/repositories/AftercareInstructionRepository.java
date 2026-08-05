@@ -10,5 +10,7 @@ public interface AftercareInstructionRepository extends JpaRepository<AftercareI
 
     List<AftercareInstruction> findByPatientIdAndPublishedAtIsNotNullOrderByPublishedAtDesc(UUID patientId);
 
+    List<AftercareInstruction> findByPatientIdOrderByCreatedAtDesc(UUID patientId);
+
     List<AftercareInstruction> findByAppointmentIdOrderByCreatedAtDesc(UUID appointmentId);
 }

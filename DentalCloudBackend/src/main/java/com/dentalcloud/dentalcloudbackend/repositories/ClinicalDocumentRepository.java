@@ -10,6 +10,8 @@ public interface ClinicalDocumentRepository extends JpaRepository<ClinicalDocume
 
     List<ClinicalDocument> findByPatientIdAndVisibleToPatientTrueOrderByCreatedAtDesc(UUID patientId);
 
+    List<ClinicalDocument> findByPatientIdOrderByCreatedAtDesc(UUID patientId);
+
     List<ClinicalDocument> findByPlanIdOrderByCreatedAtDesc(UUID planId);
 
     List<ClinicalDocument> findByAppointmentIdOrderByCreatedAtDesc(UUID appointmentId);

@@ -57,6 +57,14 @@ public class AftercareInstructionService {
     }
 
     @Transactional
+    public List<AftercareInstructionResponseDTO> listForClinicalRecord(UUID patientId, String email) {
+        User actor = actor(email);
+        return instructionRepository.findByPatientIdOrderByCreatedAtDesc(patientId).stream()
+                .filter(instruction -> canRead(instruction, actor))
+                .map(this::map).toList();
+    }
+
+    @Transactional
     public AftercareInstructionResponseDTO get(UUID id, String email) {
         AftercareInstruction instruction = instruction(id);
         assertCanRead(instruction, actor(email));
@@ -109,6 +117,15 @@ public class AftercareInstructionService {
             return;
         }
         throw new ResourceNotFoundException("Instrucción no encontrada");
+    }
+
+    private boolean canRead(AftercareInstruction instruction, User actor) {
+        try {
+            assertCanRead(instruction, actor);
+            return true;
+        } catch (ResourceNotFoundException exception) {
+            return false;
+        }
     }
 
     private User actor(String email) {
