@@ -55,6 +55,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CitaService {
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("America/El_Salvador");
+    private static final int SLOT_INTERVAL_MINUTES = 30;
     private static final Collection<AppointmentStatus> BLOCKING_STATUSES =
             EnumSet.of(AppointmentStatus.SOLICITADA, AppointmentStatus.CONFIRMADA);
 
@@ -211,13 +212,13 @@ public class CitaService {
         List<AvailabilitySlotDTO> slots = new ArrayList<>();
         for (Dentist dentist : dentistRepository.findAll()) {
             LocalDateTime dayStart = LocalDateTime.of(date, opening);
-            LocalDateTime dayEnd = LocalDateTime.of(date, closing.plusMinutes(15));
+            LocalDateTime dayEnd = LocalDateTime.of(date, closing);
             List<Citas> appointments = citasRepository
                     .findByDentistAndStartsAtGreaterThanEqualAndStartsAtLessThanOrderByStartsAtAsc(
                             dentist, dayStart, dayEnd);
-            for (LocalDateTime startsAt = dayStart;
+            for (LocalDateTime startsAt = alignToSlotGrid(dayStart);
                  !startsAt.plusMinutes(treatment.getDuracionMinutos()).isAfter(dayEnd);
-                 startsAt = startsAt.plusMinutes(treatment.getDuracionMinutos())) {
+                 startsAt = startsAt.plusMinutes(SLOT_INTERVAL_MINUTES)) {
                 LocalDateTime slotStartsAt = startsAt;
                 LocalDateTime slotEndsAt = startsAt.plusMinutes(treatment.getDuracionMinutos());
                 boolean occupied = appointments.stream()
@@ -240,6 +241,7 @@ public class CitaService {
     @Transactional
     public List<AvailabilitySlotDTO> obtenerDisponibilidadPorPlan(
             LocalDate date, UUID planId, UUID treatmentId, String email) {
+        UUID planDentistId = null;
         if (planId != null) {
             PatientTreatmentPlan plan = treatmentPlanRepository.findById(planId)
                     .orElseThrow(() -> new ResourceNotFoundException("Plan de tratamiento no encontrado"));
@@ -255,11 +257,19 @@ public class CitaService {
                 throw new BusinessException("El plan no admite nuevas citas");
             }
             treatmentId = plan.getTreatmentId();
+            planDentistId = plan.getDentistId();
         }
         if (treatmentId == null) {
             throw new BusinessException("El plan o tratamiento es requerido");
         }
-        return obtenerDisponibilidad(date, treatmentId);
+        List<AvailabilitySlotDTO> slots = obtenerDisponibilidad(date, treatmentId);
+        if (planDentistId == null) {
+            return slots;
+        }
+        UUID assignedDentistId = planDentistId;
+        return slots.stream()
+                .filter(slot -> assignedDentistId.equals(slot.getDoctorId()))
+                .toList();
     }
 
     /** Compatibilidad temporal con el formato agrupado histórico. */
@@ -609,6 +619,11 @@ public class CitaService {
         if (startsAt == null || startsAt.isBefore(now())) {
             throw new BusinessException("La cita debe estar en el futuro");
         }
+        if (startsAt.getMinute() % SLOT_INTERVAL_MINUTES != 0
+                || startsAt.getSecond() != 0
+                || startsAt.getNano() != 0) {
+            throw new BusinessException("La cita debe iniciar en un intervalo de 30 minutos");
+        }
         ClinicSchedule schedule = scheduleFor(startsAt.getDayOfWeek());
         if (schedule == null || !schedule.isEnabled()) {
             throw new BusinessException("La clínica no atiende ese día");
@@ -617,10 +632,17 @@ public class CitaService {
         LocalTime closing = schedule.getClosesAt();
         LocalDateTime endsAt = startsAt.plusMinutes(durationMinutes);
         if (startsAt.toLocalTime().isBefore(opening)
-                || endsAt.toLocalTime().isAfter(closing.plusMinutes(15))) {
+                || endsAt.toLocalTime().isAfter(closing)) {
             throw new BusinessException("La cita está fuera del horario laboral");
         }
         return endsAt;
+    }
+
+    private LocalDateTime alignToSlotGrid(LocalDateTime value) {
+        LocalDateTime withoutSeconds = value.withSecond(0).withNano(0);
+        int minute = withoutSeconds.getMinute();
+        int remainder = minute % SLOT_INTERVAL_MINUTES;
+        return remainder == 0 ? withoutSeconds : withoutSeconds.plusMinutes(SLOT_INTERVAL_MINUTES - remainder);
     }
 
     private ClinicSchedule scheduleFor(DayOfWeek day) {
