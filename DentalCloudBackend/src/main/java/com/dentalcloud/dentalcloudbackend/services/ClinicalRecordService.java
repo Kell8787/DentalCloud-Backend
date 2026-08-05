@@ -20,6 +20,7 @@ public class ClinicalRecordService {
     private final PatientService patientService;
     private final CitaService citaService;
     private final TreatmentPlanService treatmentPlanService;
+    private final ClinicalNoteService clinicalNoteService;
     private final AftercareInstructionService aftercareInstructionService;
     private final ClinicalDocumentService clinicalDocumentService;
 
@@ -44,6 +45,7 @@ public class ClinicalRecordService {
                 .medicalSummary(patientService.obtenerInformacionMedica(patient.getId()))
                 .appointments(appointments)
                 .plans(plans)
+                .notes(clinicalNoteService.listForPatient(patient.getId(), actorEmail))
                 .aftercareInstructions(aftercareInstructionService.listForClinicalRecord(patient.getId(), actorEmail))
                 .documents(clinicalDocumentService.listForClinicalRecord(patient.getId(), actorEmail))
                 .build();

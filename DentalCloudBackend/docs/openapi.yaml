@@ -133,6 +133,154 @@ paths:
               schema: { $ref: '#/components/schemas/ClinicalRecord' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+  /api/patients/{patientId}/clinical-notes:
+    get:
+      tags: [Clinical]
+      summary: Lista notas clínicas del paciente visibles para el doctor
+      operationId: listClinicalNotes
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Notas clínicas versionadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ClinicalNote' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/clinical-notes:
+    post:
+      tags: [Clinical]
+      summary: Crea un borrador de nota clínica
+      operationId: createClinicalNote
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClinicalNoteRequest' }
+      responses:
+        '201':
+          description: Borrador creado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalNote' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/clinical-notes/{id}:
+    get:
+      tags: [Clinical]
+      summary: Consulta una nota clínica
+      operationId: getClinicalNote
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Nota clínica
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalNote' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      tags: [Clinical]
+      summary: Edita un borrador de nota clínica
+      operationId: updateClinicalNoteDraft
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClinicalNoteRequest' }
+      responses:
+        '200':
+          description: Borrador actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalNote' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/clinical-notes/{id}/finalize:
+    post:
+      tags: [Clinical]
+      summary: Finaliza un borrador sin permitir sobrescritura posterior
+      operationId: finalizeClinicalNote
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Nota finalizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalNote' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/clinical-notes/{id}/amend:
+    post:
+      tags: [Clinical]
+      summary: Crea una enmienda como nueva versión de una nota final
+      operationId: amendClinicalNote
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClinicalNoteAmendment' }
+      responses:
+        '200':
+          description: Enmienda creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalNote' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/clinical-notes/{id}/audit:
+    get:
+      tags: [Clinical]
+      summary: Consulta auditoría inmutable de una nota
+      operationId: listClinicalNoteAudit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Eventos de auditoría
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ClinicalNoteAudit' }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /api/admin/patients/{id}:
     patch:
       tags: [Patients]
@@ -974,7 +1122,7 @@ components:
           items: { $ref: '#/components/schemas/ClinicalDocument' }
     ClinicalRecord:
       type: object
-      required: [patientId, patient, medicalSummary, appointments, plans,
+      required: [patientId, patient, medicalSummary, appointments, plans, notes,
         aftercareInstructions, documents]
       properties:
         patientId: { type: string, format: uuid }
@@ -986,6 +1134,9 @@ components:
         plans:
           type: array
           items: { $ref: '#/components/schemas/TreatmentPlan' }
+        notes:
+          type: array
+          items: { $ref: '#/components/schemas/ClinicalNote' }
         aftercareInstructions:
           type: array
           items: { $ref: '#/components/schemas/AftercareInstruction' }
@@ -998,6 +1149,43 @@ components:
         alergias: { type: array, items: { type: string } }
         medicamentos: { type: array, items: { type: string } }
         antecedentesMedicos: { type: string, nullable: true }
+    ClinicalNote:
+      type: object
+      required: [id, patientId, appointmentId, authorId, status, body, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid }
+        authorId: { type: string, format: uuid }
+        status: { type: string, enum: [DRAFT, FINAL, AMENDED] }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        finalizedAt: { type: string, format: date-time, nullable: true }
+        amendedFromId: { type: string, format: uuid, nullable: true }
+        amendmentReason: { type: string, nullable: true }
+    ClinicalNoteRequest:
+      type: object
+      required: [appointmentId, body]
+      properties:
+        appointmentId: { type: string, format: uuid }
+        body: { type: string, maxLength: 20000 }
+    ClinicalNoteAmendment:
+      type: object
+      required: [body, reason]
+      properties:
+        body: { type: string, maxLength: 20000 }
+        reason: { type: string, maxLength: 500 }
+    ClinicalNoteAudit:
+      type: object
+      required: [id, noteId, action, actorId, occurredAt]
+      properties:
+        id: { type: string, format: uuid }
+        noteId: { type: string, format: uuid }
+        action: { type: string }
+        actorId: { type: string, format: uuid }
+        detail: { type: string, nullable: true }
+        occurredAt: { type: string, format: date-time }
     SecretaryDashboard:
       type: object
       required: [weekOf, totalAppointments, requestedAppointments, confirmedAppointments,

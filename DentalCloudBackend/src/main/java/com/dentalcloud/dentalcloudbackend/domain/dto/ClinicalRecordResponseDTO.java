@@ -14,6 +14,7 @@ public class ClinicalRecordResponseDTO {
     private InformacionMedicaDTO medicalSummary;
     private List<CitaResponseDTO> appointments;
     private List<PatientTreatmentPlanResponseDTO> plans;
+    private List<ClinicalNoteResponseDTO> notes;
     private List<AftercareInstructionResponseDTO> aftercareInstructions;
     private List<ClinicalDocumentResponseDTO> documents;
 }

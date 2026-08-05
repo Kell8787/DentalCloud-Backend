@@ -126,6 +126,13 @@ citas históricos se conservan.
 quedan inicialmente inactivas hasta que un usuario autorizado las active; el
 login y la autenticación JWT rechazan cuentas inactivas.
 
+## V11 — notas clínicas y auditoría
+
+`V11__add_clinical_notes_audit.sql` crea las notas clínicas versionadas y su
+auditoría inmutable. Un borrador puede editarse y finalizarse; una nota final
+solo se corrige mediante una nueva enmienda enlazada, conservando autor,
+motivo y timestamps de cada evento.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.

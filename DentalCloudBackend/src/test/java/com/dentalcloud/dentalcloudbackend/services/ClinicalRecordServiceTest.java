@@ -27,6 +27,7 @@ class ClinicalRecordServiceTest {
     @Mock private PatientService patientService;
     @Mock private CitaService citaService;
     @Mock private TreatmentPlanService treatmentPlanService;
+    @Mock private ClinicalNoteService clinicalNoteService;
     @Mock private AftercareInstructionService aftercareInstructionService;
     @Mock private ClinicalDocumentService clinicalDocumentService;
     @InjectMocks private ClinicalRecordService service;
@@ -41,6 +42,7 @@ class ClinicalRecordServiceTest {
         when(userRepository.findById(patientId)).thenReturn(Optional.of(patient));
         when(citaService.obtenerCitasDeExpediente(patientId, doctor.getEmail())).thenReturn(List.of(appointment));
         when(treatmentPlanService.listForPatient(patientId, doctor.getEmail())).thenReturn(List.of());
+        when(clinicalNoteService.listForPatient(patientId, doctor.getEmail())).thenReturn(List.of());
         when(aftercareInstructionService.listForClinicalRecord(patientId, doctor.getEmail())).thenReturn(List.of());
         when(clinicalDocumentService.listForClinicalRecord(patientId, doctor.getEmail())).thenReturn(List.of());
         when(patientService.obtenerPerfil(patientId)).thenReturn(UserResponseDTO.builder().id(patientId).build());
