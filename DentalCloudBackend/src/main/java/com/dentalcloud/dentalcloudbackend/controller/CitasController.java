@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,16 +46,19 @@ public class CitasController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<CitaResponseDTO> solicitarCita(
             @Valid @RequestBody AppointmentRequestDTO request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(citasService.solicitarCita(request, userDetails.getUsername()));
+                .body(citasService.solicitarCita(request, userDetails.getUsername(), idempotencyKey));
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SECRETARIA', 'DOCTOR', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> crearCita(
-            @Valid @RequestBody StaffAppointmentRequestDTO request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(citasService.crearCitaStaff(request));
+            @Valid @RequestBody StaffAppointmentRequestDTO request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(citasService.crearCitaStaff(request, idempotencyKey));
     }
 
     /** Ruta histórica conservada para clientes internos durante la migración. */

@@ -71,6 +71,9 @@ public class Citas {
     @Column(name = "cancellation_reason", columnDefinition = "TEXT")
     private String cancellationReason;
 
+    @Column(name = "idempotency_key", length = 100, unique = true)
+    private String idempotencyKey;
+
     @Version
     @Column(nullable = false)
     private Long version;

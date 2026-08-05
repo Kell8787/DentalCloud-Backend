@@ -99,7 +99,7 @@ class PostgreSqlFlywayIntegrationTest {
                   and lower(column_name) in (
                     'starts_at', 'ends_at', 'status', 'source',
                     'treatment_plan_id', 'rescheduled_from_id',
-                    'cancellation_reason', 'version'
+                    'cancellation_reason', 'idempotency_key', 'version'
                   )
                 """,
                 Integer.class
@@ -109,12 +109,12 @@ class PostgreSqlFlywayIntegrationTest {
                 Integer.class
         );
 
-        assertThat(appliedMigrations).isEqualTo(5);
+        assertThat(appliedMigrations).isEqualTo(6);
         assertThat(seededDoctors).isGreaterThanOrEqualTo(2);
         assertThat(inventoryColumns).isEqualTo(3);
         assertThat(stockMovementTables).isEqualTo(1);
         assertThat(clinicalTables).isEqualTo(4);
-        assertThat(appointmentColumns).isEqualTo(8);
+        assertThat(appointmentColumns).isEqualTo(9);
         assertThat(clinicScheduleRows).isEqualTo(7);
 
         UUID categoryId = UUID.fromString("33333333-3333-3333-3333-333333333333");

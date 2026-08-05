@@ -31,3 +31,9 @@ esquema anterior no registraba el origen, los registros migrados se marcan
 Las rutas históricas permanecen como aliases durante la migración, pero las
 mutaciones nuevas deben usar las rutas canónicas y comprobar el rol y el
 ownership en el servicio.
+
+Las creaciones aceptan el header opcional `Idempotency-Key`. Para solicitudes
+repetidas del mismo paciente se devuelve el mismo recurso; la clave no puede
+reutilizarse para otro paciente. Las reservas por doctor se serializan dentro
+de la transacción para que el mismo slot no se confirme dos veces por una
+condición de carrera.

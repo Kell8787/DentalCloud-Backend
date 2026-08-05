@@ -36,6 +36,8 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
 
     Optional<Citas> findByIdAndUser(UUID id, User user);
 
+    Optional<Citas> findByIdempotencyKey(String idempotencyKey);
+
     boolean existsByDentistAndStartsAtLessThanAndEndsAtGreaterThanAndStatusIn(
             Dentist dentist,
             LocalDateTime endsAt,

@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiErrorResponse> handleConflict(HttpServletRequest request, ConflictException ex) {
-        return error(request, HttpStatus.CONFLICT, "APPOINTMENT_SLOT_TAKEN", ex.getMessage());
+        return error(request, HttpStatus.CONFLICT, ex.getCode(), ex.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

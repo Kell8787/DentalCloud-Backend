@@ -60,6 +60,11 @@ public class CitaService {
 
     @Transactional
     public CitaResponseDTO solicitarCita(AppointmentRequestDTO request, String email) {
+        return solicitarCita(request, email, null);
+    }
+
+    @Transactional
+    public CitaResponseDTO solicitarCita(AppointmentRequestDTO request, String email, String idempotencyKey) {
         User patient = userByEmail(email);
         PatientTreatmentPlan plan = treatmentPlanRepository.findById(request.getTreatmentPlanId())
                 .orElseThrow(() -> new ResourceNotFoundException("Plan de tratamiento no encontrado"));
@@ -79,12 +84,17 @@ public class CitaService {
         staffRequest.setTreatmentPlanId(plan.getId());
         staffRequest.setStartsAt(request.getStartsAt());
         staffRequest.setReason(request.getReason());
-        return create(staffRequest, AppointmentSource.PATIENT_REQUEST);
+        return create(staffRequest, AppointmentSource.PATIENT_REQUEST, idempotencyKey);
     }
 
     @Transactional
     public CitaResponseDTO crearCitaStaff(StaffAppointmentRequestDTO request) {
-        return create(request, AppointmentSource.STAFF_CREATED);
+        return crearCitaStaff(request, null);
+    }
+
+    @Transactional
+    public CitaResponseDTO crearCitaStaff(StaffAppointmentRequestDTO request, String idempotencyKey) {
+        return create(request, AppointmentSource.STAFF_CREATED, idempotencyKey);
     }
 
     /** Compatibilidad temporal con el payload histórico. */
@@ -96,13 +106,28 @@ public class CitaService {
         modern.setTreatmentId(request.getTratamientoId());
         modern.setStartsAt(LocalDateTime.of(request.getFecha(), request.getHoraInicio()));
         modern.setReason(request.getMotivo());
-        return crearCitaStaff(modern);
+        return crearCitaStaff(modern, null);
     }
 
-    private CitaResponseDTO create(StaffAppointmentRequestDTO request, AppointmentSource source) {
+    private CitaResponseDTO create(StaffAppointmentRequestDTO request,
+                                   AppointmentSource source,
+                                   String rawIdempotencyKey) {
+        String idempotencyKey = normalizeIdempotencyKey(rawIdempotencyKey);
         User patient = userRepository.findById(request.getPatientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
-        Dentist dentist = dentistRepository.findById(request.getDoctorId())
+        if (idempotencyKey != null) {
+            var existing = citasRepository.findByIdempotencyKey(idempotencyKey);
+            if (existing.isPresent()) {
+                if (!existing.get().getUser().getId().equals(patient.getId())) {
+                    throw new ConflictException("IDEMPOTENCY_KEY_REUSED",
+                            "La clave de idempotencia ya pertenece a otro paciente.");
+                }
+                return map(existing.get());
+            }
+        }
+
+        // Serializa las reservas del mismo doctor antes de comprobar solapamientos.
+        Dentist dentist = dentistRepository.findByIdForUpdate(request.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
         Tratamiento treatment = tratamientoRepository.findById(request.getTreatmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
@@ -124,6 +149,7 @@ public class CitaService {
                         ? AppointmentStatus.SOLICITADA : AppointmentStatus.CONFIRMADA)
                 .source(source)
                 .motivo(request.getReason())
+                .idempotencyKey(idempotencyKey)
                 .version(0L)
                 .build();
         return map(citasRepository.save(appointment));
@@ -413,6 +439,17 @@ public class CitaService {
 
     private LocalDateTime now() {
         return LocalDateTime.now(BUSINESS_ZONE);
+    }
+
+    private String normalizeIdempotencyKey(String rawKey) {
+        if (rawKey == null || rawKey.isBlank()) {
+            return null;
+        }
+        String key = rawKey.trim();
+        if (key.length() > 100) {
+            throw new BusinessException("La clave de idempotencia no puede superar 100 caracteres");
+        }
+        return key;
     }
 
     private boolean isAllowed(AppointmentStatus from, AppointmentStatus to) {
