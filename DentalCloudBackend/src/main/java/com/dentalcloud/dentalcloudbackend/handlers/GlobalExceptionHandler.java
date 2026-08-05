@@ -2,6 +2,7 @@ package com.dentalcloud.dentalcloudbackend.handlers;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.ApiErrorResponse;
 import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
+import com.dentalcloud.dentalcloudbackend.exceptions.ConflictException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.security.TraceIdFilter;
 import jakarta.persistence.EntityNotFoundException;
@@ -65,6 +66,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiErrorResponse> handleBusiness(HttpServletRequest request, BusinessException ex) {
         return error(request, HttpStatus.UNPROCESSABLE_ENTITY, "BUSINESS_RULE_VIOLATION", ex.getMessage());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(HttpServletRequest request, ConflictException ex) {
+        return error(request, HttpStatus.CONFLICT, "APPOINTMENT_SLOT_TAKEN", ex.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

@@ -1,48 +1,53 @@
 package com.dentalcloud.dentalcloudbackend.repositories;
 
-import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Citas;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
-import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
+import com.dentalcloud.dentalcloudbackend.domain.entity.User;
+import com.dentalcloud.dentalcloudbackend.domain.enums.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CitasRepository extends JpaRepository<Citas, UUID> {
-    List<Citas> findAll();
+    List<Citas> findByUserAndStatusInOrderByStartsAtAsc(User user, Collection<AppointmentStatus> statuses);
 
-    List<Citas> findByUserAndEstadoCitaNot(User user, EstadoCita estadoCita);
+    List<Citas> findByUserAndStartsAtGreaterThanEqualAndStatusInOrderByStartsAtAsc(
+            User user, LocalDateTime startsAt, Collection<AppointmentStatus> statuses);
 
-    List<Citas> findByFechaCita(String fechaCita);
+    List<Citas> findByUserAndEndsAtLessThanAndStatusInOrderByStartsAtDesc(
+            User user, LocalDateTime endsAt, Collection<AppointmentStatus> statuses);
 
-    boolean existsByDentistAndHoraLessThanAndHoraFinGreaterThanAndEstadoCitaIn(
+    List<Citas> findByDentistAndStartsAtLessThanAndEndsAtGreaterThanOrderByStartsAtAsc(
+            Dentist dentist, LocalDateTime endsAt, LocalDateTime startsAt);
+
+    List<Citas> findByDentistAndStartsAtGreaterThanEqualAndStartsAtLessThanOrderByStartsAtAsc(
+            Dentist dentist, LocalDateTime from, LocalDateTime to);
+
+    List<Citas> findByStatusInOrderByStartsAtAsc(Collection<AppointmentStatus> statuses);
+
+    List<Citas> findByStartsAtGreaterThanEqualAndStartsAtLessThanOrderByStartsAtAsc(
+            LocalDateTime from, LocalDateTime to);
+
+    List<Citas> findByStatusOrderByStartsAtAsc(AppointmentStatus status);
+
+    Optional<Citas> findByIdAndUser(UUID id, User user);
+
+    boolean existsByDentistAndStartsAtLessThanAndEndsAtGreaterThanAndStatusIn(
             Dentist dentist,
-            LocalDateTime horaFin,
-            LocalDateTime hora,
-            List<EstadoCita> estados
+            LocalDateTime endsAt,
+            LocalDateTime startsAt,
+            Collection<AppointmentStatus> statuses
     );
 
-    List<Citas> findByUser(User user);
-
-    List<Citas> findByDentistAndFechaCita(Dentist dentist, String fechaCita);
-
-    List<Citas> findByDentist(Dentist dentist);
-
-    boolean existsByDentistAndHoraLessThanAndHoraFinGreaterThanAndEstadoCitaInAndIdNot(
+    boolean existsByDentistAndStartsAtLessThanAndEndsAtGreaterThanAndStatusInAndIdNot(
             Dentist dentist,
-            LocalDateTime horaFin,
-            LocalDateTime hora,
-            List<EstadoCita> estados,
+            LocalDateTime endsAt,
+            LocalDateTime startsAt,
+            Collection<AppointmentStatus> statuses,
             UUID id
     );
-    List<Citas> findByFechaCitaAndEstadoCita(String fechaCita, EstadoCita estado);
-
-    List<Citas> findByEstadoCita(EstadoCita estado);
-
-    List<Citas> findByEstadoCitaNot(EstadoCita estado);
-
-    List<Citas> findByFechaCitaAndEstadoCitaNot(String fechaCita, EstadoCita estado);
 }

@@ -13,4 +13,5 @@ public class SlotDisponibleDTO {
     private UUID dentistaId;
     private String dentistaNombre;
     private List<LocalTime> horasDisponibles;
+    private List<AvailabilitySlotDTO> slots;
 }
