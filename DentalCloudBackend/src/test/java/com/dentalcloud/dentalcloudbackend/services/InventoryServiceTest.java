@@ -3,8 +3,10 @@ package com.dentalcloud.dentalcloudbackend.services;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryQuantityRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.InventoryProduct;
 import com.dentalcloud.dentalcloudbackend.domain.entity.ProductCategory;
+import com.dentalcloud.dentalcloudbackend.domain.entity.StockMovement;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
+import com.dentalcloud.dentalcloudbackend.domain.enums.StockMovementType;
 import com.dentalcloud.dentalcloudbackend.repositories.InventoryProductRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.ProductCategoryRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.StockMovementRepository;
@@ -54,5 +56,21 @@ class InventoryServiceTest {
         when(productRepository.findByIdAndDeletedFalse(product.getId())).thenReturn(Optional.of(product));
 
         assertThat(service.getById(product.getId()).getStatus()).isEqualTo("BAJO");
+    }
+
+    @Test
+    void reportsConsistentBalanceFromImmutableMovements() {
+        UUID productId = UUID.randomUUID();
+        InventoryProduct product = InventoryProduct.builder().id(productId).quantity(7).minimumStock(1).build();
+        when(productRepository.findByIdAndDeletedFalse(productId)).thenReturn(Optional.of(product));
+        when(movementRepository.findByProductIdOrderByOccurredAtDesc(productId)).thenReturn(java.util.List.of(
+                StockMovement.builder().productId(productId).type(StockMovementType.SALIDA).quantity(3).build(),
+                StockMovement.builder().productId(productId).type(StockMovementType.ENTRADA).quantity(10).build()));
+
+        var response = service.reconciliation(productId);
+
+        assertThat(response.isConsistent()).isTrue();
+        assertThat(response.getMovementBalance()).isEqualTo(7);
+        assertThat(response.getDiscrepancy()).isZero();
     }
 }

@@ -4,6 +4,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.CategoryResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CreateCategoryRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryQuantityRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryResponseDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryReconciliationResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryUpdateRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.StockMovementResponseDTO;
 import com.dentalcloud.dentalcloudbackend.services.InventoryService;
@@ -109,6 +110,11 @@ public class InventoryController {
     @GetMapping("/{id}/movements")
     public ResponseEntity<List<StockMovementResponseDTO>> movements(@PathVariable UUID id) {
         return ResponseEntity.ok(inventoryService.movements(id));
+    }
+
+    @GetMapping("/{id}/reconciliation")
+    public ResponseEntity<InventoryReconciliationResponseDTO> reconciliation(@PathVariable UUID id) {
+        return ResponseEntity.ok(inventoryService.reconciliation(id));
     }
 
     @DeleteMapping("/{id}")

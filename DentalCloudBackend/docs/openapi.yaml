@@ -963,6 +963,25 @@ paths:
                 type: array
                 items: { $ref: '#/components/schemas/StockMovement' }
         '403': { $ref: '#/components/responses/Forbidden' }
+  /api/inventory/{id}/reconciliation:
+    get:
+      tags: [Inventory]
+      summary: Reconcilia cantidad actual contra movimientos inmutables
+      operationId: reconcileInventory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Resultado de conciliación
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InventoryReconciliation' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 components:
   securitySchemes:
     bearerAuth:
@@ -1330,6 +1349,19 @@ components:
         actorId: { type: string, format: uuid }
         occurredAt: { type: string, format: date-time }
         categoryId: { type: string, format: uuid }
+    InventoryReconciliation:
+      type: object
+      required: [productId, currentQuantity, movementBalance, discrepancy, entries, exits,
+        adjustments, consistent]
+      properties:
+        productId: { type: string, format: uuid }
+        currentQuantity: { type: integer, minimum: 0 }
+        movementBalance: { type: integer }
+        discrepancy: { type: integer }
+        entries: { type: integer, format: int64, minimum: 0 }
+        exits: { type: integer, format: int64, minimum: 0 }
+        adjustments: { type: integer, format: int64, minimum: 0 }
+        consistent: { type: boolean }
     PageInventory:
       $ref: '#/components/schemas/Page'
     Page:

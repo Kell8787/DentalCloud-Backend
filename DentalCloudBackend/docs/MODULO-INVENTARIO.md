@@ -67,6 +67,7 @@ http://localhost:8080
 | `PUT` | `/api/inventory/{id}/purchase` | Suma cantidad (compra / ingreso de stock). |
 | `PUT` | `/api/inventory/{id}/sale` | Resta cantidad (venta / salida de stock). |
 | `GET` | `/api/inventory/{id}/movements` | Lista movimientos inmutables, del más reciente al más antiguo. |
+| `GET` | `/api/inventory/{id}/reconciliation` | Compara cantidad actual contra el balance de movimientos y reporta discrepancia. |
 | `DELETE` | `/api/inventory/{id}` | Baja **lógica** del producto (`deleted = true`). |
 
 ---
@@ -227,6 +228,7 @@ Los productos eliminados **no** deben aparecer en listados ni en detalle (consul
 5. Para movimientos de stock: `PUT .../purchase` o `PUT .../sale` solo con `{ "quantity": N }`.
 6. Para buscar en UI: `GET /api/inventory?name=...` y/o `?categoryName=...`.
 7. Opcional: `DELETE /api/inventory/{id}` para baja lógica.
+8. Para auditar consistencia: `GET /api/inventory/{id}/reconciliation`; `consistent=false` identifica inventario legado o una divergencia que debe revisarse.
 
 ---
 

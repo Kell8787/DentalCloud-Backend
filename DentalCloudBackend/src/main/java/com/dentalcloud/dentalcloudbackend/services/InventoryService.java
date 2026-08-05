@@ -4,6 +4,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.CategoryResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CreateCategoryRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryQuantityRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryResponseDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryReconciliationResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryUpdateRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.StockMovementResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.InventoryProduct;
@@ -150,6 +151,35 @@ public class InventoryService {
                         .productId(movement.getProductId()).type(movement.getType()).quantity(movement.getQuantity())
                         .reason(movement.getReason()).actorId(movement.getActorId()).occurredAt(movement.getOccurredAt()).build())
                 .toList();
+    }
+
+    public InventoryReconciliationResponseDTO reconciliation(UUID productId) {
+        InventoryProduct product = product(productId);
+        List<StockMovement> movements = stockMovementRepository.findByProductIdOrderByOccurredAtDesc(productId);
+        int balance = 0;
+        long entries = 0;
+        long exits = 0;
+        long adjustments = 0;
+        for (StockMovement movement : movements) {
+            switch (movement.getType()) {
+                case ENTRADA -> {
+                    balance += movement.getQuantity();
+                    entries++;
+                }
+                case SALIDA -> {
+                    balance -= movement.getQuantity();
+                    exits++;
+                }
+                case AJUSTE -> {
+                    balance += movement.getQuantity();
+                    adjustments++;
+                }
+            }
+        }
+        int current = product.getQuantity() == null ? 0 : product.getQuantity();
+        return InventoryReconciliationResponseDTO.builder().productId(productId).currentQuantity(current)
+                .movementBalance(balance).discrepancy(current - balance).entries(entries).exits(exits)
+                .adjustments(adjustments).consistent(current == balance).build();
     }
 
     private void saveMovement(InventoryProduct product, StockMovementType type, int quantity,
