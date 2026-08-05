@@ -268,11 +268,19 @@ public class TreatmentPlanService {
     }
 
     private PatientTreatmentPlanResponseDTO map(PatientTreatmentPlan plan) {
+        String treatmentName = tratamientoRepository.findById(plan.getTreatmentId())
+                .map(Tratamiento::getNombre)
+                .orElse("Tratamiento asignado");
+        String dentistName = dentistRepository.findById(plan.getDentistId())
+                .map(Dentist::getName)
+                .orElse("Doctor asignado");
         return PatientTreatmentPlanResponseDTO.builder()
                 .id(plan.getId())
                 .patientId(plan.getPatientId())
                 .treatmentId(plan.getTreatmentId())
+                .treatmentName(treatmentName)
                 .dentistId(plan.getDentistId())
+                .dentistName(dentistName)
                 .status(plan.getStatus())
                 .startedAt(plan.getStartedAt())
                 .expectedEndAt(plan.getExpectedEndAt())
