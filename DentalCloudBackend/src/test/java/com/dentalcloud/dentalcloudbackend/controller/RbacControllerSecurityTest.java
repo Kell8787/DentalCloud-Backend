@@ -110,10 +110,16 @@ class RbacControllerSecurityTest {
 
         @Bean
         InventoryService inventoryService() {
-            return new InventoryService(null, null) {
+            return new InventoryService(null, null, null, null) {
                 @Override
                 public List<com.dentalcloud.dentalcloudbackend.domain.dto.InventoryResponseDTO> searchProducts(
                         String categoryName, String nameFragment) {
+                    return List.of();
+                }
+
+                @Override
+                public List<com.dentalcloud.dentalcloudbackend.domain.dto.InventoryResponseDTO> searchProducts(
+                        String categoryName, String nameFragment, String status) {
                     return List.of();
                 }
             };
@@ -121,7 +127,7 @@ class RbacControllerSecurityTest {
 
         @Bean
         PatientService patientService() {
-            return new PatientService(null, null, null) {
+            return new PatientService(null, null, null, null) {
                 @Override
                 public InformacionMedicaDTO obtenerInformacionMedicaPorEmail(String patientEmail) {
                     return new InformacionMedicaDTO();
