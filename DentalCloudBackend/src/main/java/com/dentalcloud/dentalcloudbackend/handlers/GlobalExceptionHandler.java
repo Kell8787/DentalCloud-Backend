@@ -2,15 +2,19 @@ package com.dentalcloud.dentalcloudbackend.handlers;
 
 import com.dentalcloud.dentalcloudbackend.domain.dto.ApiErrorResponse;
 import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
+import com.dentalcloud.dentalcloudbackend.exceptions.ConflictException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.security.TraceIdFilter;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -29,6 +33,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({UsernameNotFoundException.class, BadCredentialsException.class})
     public ResponseEntity<ApiErrorResponse> handleAuthentication(HttpServletRequest request, Exception ex) {
         return error(request, HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", "Las credenciales no son válidas.");
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(HttpServletRequest request,
+                                                                AccessDeniedException ex) {
+        return error(request, HttpStatus.FORBIDDEN, "ACCESS_DENIED",
+                "No tienes permisos para realizar esta acción.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -65,11 +76,22 @@ public class GlobalExceptionHandler {
         return error(request, HttpStatus.UNPROCESSABLE_ENTITY, "BUSINESS_RULE_VIOLATION", ex.getMessage());
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflict(HttpServletRequest request, ConflictException ex) {
+        return error(request, HttpStatus.CONFLICT, ex.getCode(), ex.getMessage());
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolation(HttpServletRequest request,
                                                                            DataIntegrityViolationException ex) {
         return error(request, HttpStatus.CONFLICT, "UNIQUE_CONSTRAINT_VIOLATION",
                 "Ya existe un registro con esos datos. Verifica los campos únicos.");
+    }
+
+    @ExceptionHandler({OptimisticLockException.class, OptimisticLockingFailureException.class})
+    public ResponseEntity<ApiErrorResponse> handleOptimisticLock(HttpServletRequest request, Exception ex) {
+        return error(request, HttpStatus.CONFLICT, "CONCURRENT_MODIFICATION",
+                "El registro cambió mientras se procesaba la operación. Recarga e inténtalo de nuevo.");
     }
 
     @ExceptionHandler(RuntimeException.class)

@@ -7,7 +7,9 @@ pero no crea ni modifica tablas.
 ## Esquema nuevo
 
 Con PostgreSQL vacío, iniciar el backend normalmente. Flyway ejecuta
-`V1__baseline_current_schema.sql` y registra la migración en
+`V1__baseline_current_schema.sql`, después `V2__add_inventory_stock_controls.sql`,
+`V3__add_clinical_plan_documents_instructions.sql` y
+`V4__migrate_appointments_to_typed_schedule.sql`, y registra todas las migraciones en
 `flyway_schema_history`.
 
 ```bash
@@ -42,11 +44,112 @@ Antes de migrar una base existente:
 
 El baseline no corrige diferencias entre una base existente y el esquema
 esperado. Cualquier cambio posterior debe agregarse como una migración nueva,
-por ejemplo `V2__add_treatment_plans.sql`, y debe ser reversible o contar con
-un procedimiento de rollback documentado.
+y debe ser reversible o contar con un procedimiento de rollback documentado.
+
+## V2 — controles de inventario
+
+`V2__add_inventory_stock_controls.sql` agrega `minimum_stock`, `unit` y
+`version` a `inventory_products`, inicializando los registros existentes con
+`0`, `unidad` y `0`, respectivamente. También crea `stock_movements` con
+claves foráneas a producto y actor, checks de tipo/cantidad e índices de
+consulta.
+
+Si se necesita revertir V2 antes de usar los nuevos campos o movimientos, debe
+hacerse con respaldo y una ventana controlada: eliminar primero los índices y
+la tabla `stock_movements`, después retirar las restricciones y las tres
+columnas agregadas de `inventory_products`, y finalmente eliminar la entrada
+V2 de `flyway_schema_history`. No se debe editar una migración ya aplicada ni
+ejecutar este rollback si ya existen datos que dependan de esos campos.
+
+## V3 — esqueleto clínico
+
+`V3__add_clinical_plan_documents_instructions.sql` crea los planes de
+tratamiento, sus pasos, los metadatos de documentos clínicos y las
+instrucciones post-cita. Las claves foráneas conservan la relación con
+pacientes, dentistas, tratamientos y citas existentes; los binarios no se
+guardan en estas tablas.
+
+## V4 — citas con intervalo tipado
+
+`V4__migrate_appointments_to_typed_schedule.sql` agrega `starts_at`, `ends_at`,
+`status`, `source`, `treatment_plan_id`, `rescheduled_from_id`,
+`cancellation_reason` y `version` a `citas`. Los valores existentes se
+transforman de forma conservadora: `PENDIENTE` pasa a `SOLICITADA`,
+`FINALIZADA` a `COMPLETADA` y los estados históricos no activos a
+`CANCELADA`. Las columnas históricas se conservan durante la transición, pero
+el código nuevo solo usa el intervalo tipado.
+
+La fuente de registros anteriores no puede inferirse del esquema legado, por
+lo que se inicializa como `STAFF_CREATED` y queda documentada para auditoría.
+Los checks de intervalo, estado y origen, junto con los índices por doctor,
+paciente y fecha, protegen el nuevo modelo sin eliminar datos existentes.
+
+## V5 — horario configurable
+
+`V5__add_clinic_schedule.sql` crea `clinic_schedules` con un registro por día,
+semilla el horario actual de la clínica y permite deshabilitar días sin tocar
+el código de disponibilidad. La semilla conserva lunes-viernes de 08:00 a
+16:00, sábado cerrado y domingo de 08:00 a 12:00.
+
+## V6 — idempotencia de citas
+
+`V6__add_appointment_idempotency.sql` agrega una clave opcional única para
+reintentos seguros de creación. Una misma clave para el mismo paciente devuelve
+la cita ya creada; reutilizarla desde otro paciente responde conflicto. La
+creación también bloquea la fila del doctor durante la comprobación y el
+guardado para serializar reservas concurrentes.
+
+## V7 — historial de estados de cita
+
+`V7__add_appointment_status_events.sql` crea un historial inmutable de cada
+transición con estado anterior, estado nuevo, motivo, actor y timestamp. La
+creación registra el estado inicial; las acciones posteriores solo pueden
+seguir la máquina de estados del contrato.
+
+## V8 — versionado de planes
+
+`V8__add_treatment_plan_versioning.sql` agrega `version` a planes y pasos para
+que las ediciones clínicas concurrentes fallen con `409` en lugar de
+sobrescribirse silenciosamente.
+
+## V9 — catálogo activo
+
+`V9__add_treatment_active_flag.sql` agrega `active` al catálogo de
+tratamientos. Los tratamientos inactivos dejan de aparecer en el catálogo
+normal y no pueden seleccionarse al crear planes, citas o slots; los planes y
+citas históricos se conservan.
+
+## V10 — activación de pacientes
+
+`V10__add_user_activation_flag.sql` agrega `active` a `dental_users` con valor
+`TRUE` para los usuarios existentes. Las altas administrativas de pacientes
+quedan inicialmente inactivas hasta que un usuario autorizado las active; el
+login y la autenticación JWT rechazan cuentas inactivas.
+
+## V11 — notas clínicas y auditoría
+
+`V11__add_clinical_notes_audit.sql` crea las notas clínicas versionadas y su
+auditoría inmutable. Un borrador puede editarse y finalizarse; una nota final
+solo se corrige mediante una nueva enmienda enlazada, conservando autor,
+motivo y timestamps de cada evento.
+
+## V12 — consultas de dashboards
+
+`V12__add_dashboard_query_indexes.sql` agrega un índice por `starts_at` para
+las agendas diarias generales. Las consultas de agenda cargan además paciente,
+dentista y tratamiento en una lectura agrupada para evitar N+1 críticos al
+mapear respuestas.
 
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
-- `V2__<descripcion>.sql`: primer cambio de dominio posterior al baseline.
+- `V2__add_inventory_stock_controls.sql`: controles de stock y movimientos.
+- `V3__add_clinical_plan_documents_instructions.sql`: esqueleto clínico.
+- `V4__migrate_appointments_to_typed_schedule.sql`: intervalo, estado y origen de citas.
+- `V5__add_clinic_schedule.sql`: horario semanal configurable.
+- `V6__add_appointment_idempotency.sql`: reintentos y reservas concurrentes.
+- `V7__add_appointment_status_events.sql`: historial inmutable de transiciones.
+- `V8__add_treatment_plan_versioning.sql`: control optimista de planes y pasos.
+- `V9__add_treatment_active_flag.sql`: elegibilidad del catálogo clínico.
+- `V10__add_user_activation_flag.sql`: activación administrativa de pacientes.
 - No editar una migración que ya se ejecutó en un entorno compartido.

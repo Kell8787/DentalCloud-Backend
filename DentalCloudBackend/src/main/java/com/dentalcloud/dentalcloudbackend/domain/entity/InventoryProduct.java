@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -49,7 +50,24 @@ public class InventoryProduct {
 
     @NotNull
     @Min(0)
+    @Column(nullable = false)
     private Integer quantity;
+
+    @NotNull
+    @Min(0)
+    @Builder.Default
+    @Column(name = "minimum_stock", nullable = false)
+    private Integer minimumStock = 0;
+
+    @NotBlank
+    @Builder.Default
+    @Column(nullable = false, length = 32)
+    private String unit = "unidad";
+
+    @Version
+    @Builder.Default
+    @Column(nullable = false)
+    private Long version = 0L;
 
     @Builder.Default
     private boolean deleted = false;

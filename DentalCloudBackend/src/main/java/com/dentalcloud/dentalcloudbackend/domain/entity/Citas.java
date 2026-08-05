@@ -1,12 +1,19 @@
 package com.dentalcloud.dentalcloudbackend.domain.entity;
 
-import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
-import com.dentalcloud.dentalcloudbackend.domain.enums.MotivoCancelacion;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.dentalcloud.dentalcloudbackend.domain.enums.AppointmentSource;
+import com.dentalcloud.dentalcloudbackend.domain.enums.AppointmentStatus;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,26 +45,36 @@ public class Citas {
     @JoinColumn(name = "tratamiento_id", nullable = false)
     private Tratamiento tratamiento;
 
-    @NotNull
-    @Column(nullable = false)
-    private String fechaCita; //Fecha de la cita
-
-    @NotBlank
-    @Column(columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String motivo;
 
-    @NotNull
-    @Column(nullable = false)
-    private LocalDateTime hora; // El inicio de la cita
+    @Column(name = "starts_at", nullable = false)
+    private LocalDateTime startsAt;
 
-    @NotNull
-    @Column(nullable = false)
-    private LocalDateTime horaFin; // El fin de la cita
+    @Column(name = "ends_at", nullable = false)
+    private LocalDateTime endsAt;
 
     @Enumerated(EnumType.STRING)
-    private MotivoCancelacion motivoCancelacion;
+    @Column(name = "status", nullable = false, length = 24)
+    private AppointmentStatus status;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 24)
+    private AppointmentSource source;
+
+    @Column(name = "treatment_plan_id")
+    private UUID treatmentPlanId;
+
+    @Column(name = "rescheduled_from_id")
+    private UUID rescheduledFromId;
+
+    @Column(name = "cancellation_reason", columnDefinition = "TEXT")
+    private String cancellationReason;
+
+    @Column(name = "idempotency_key", length = 100, unique = true)
+    private String idempotencyKey;
+
+    @Version
     @Column(nullable = false)
-    private EstadoCita estadoCita;
+    private Long version;
 }

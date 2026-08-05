@@ -30,12 +30,14 @@ public class PatientController {
     }
 
     @GetMapping("/profile")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<UserResponseDTO> obtenerPerfil(
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(patientService.obtenerPerfil(userDetails.getUsername()));
     }
 
     @PutMapping("/profile")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<UserResponseDTO> actualizarPerfil(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ActualizarPerfilRequestDTO request) {
@@ -43,12 +45,14 @@ public class PatientController {
     }
 
     @GetMapping("/emergency-contact")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ContactoEmergenciaDTO> obtenerContactoEmergencia(
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(patientService.obtenerContactoEmergencia(userDetails.getUsername()));
     }
 
     @PutMapping("/emergency-contact")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<Void> actualizarContactoEmergencia(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ActualizarContactoEmergenciaRequestDTO request) {
@@ -57,12 +61,14 @@ public class PatientController {
     }
 
     @GetMapping("/medical-info")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<InformacionMedicaDTO> obtenerInformacionMedica(
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(patientService.obtenerInformacionMedica(userDetails.getUsername()));
     }
 
     @PutMapping("/medical-info")
+    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<InformacionMedicaDTO> actualizarInformacionMedica(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody InformacionMedicaDTO request) {
@@ -70,14 +76,14 @@ public class PatientController {
     }
 
     @GetMapping("/medical-info/email")
-    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<InformacionMedicaDTO> obtenerInformacionMedicaPorEmail(
             @RequestParam String email) {
         return ResponseEntity.ok(patientService.obtenerInformacionMedicaPorEmail(email));
     }
 
     @PutMapping("/medical-info/email")
-    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<InformacionMedicaDTO> actualizarInformacionMedicaPorEmail(
             @RequestParam String email,
             @RequestBody InformacionMedicaDTO request) {

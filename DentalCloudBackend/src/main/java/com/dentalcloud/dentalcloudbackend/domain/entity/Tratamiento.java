@@ -32,5 +32,8 @@ public class Tratamiento {
 
     @Column(nullable = false)
     private BigDecimal precio;
-}
 
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
+}

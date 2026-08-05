@@ -17,4 +17,8 @@ public class InventoryResponseDTO {
     private UUID categoryId;
     private String categoryName;
     private Integer quantity;
+    private Integer minimumStock;
+    private String unit;
+    private Long version;
+    private String status;
 }

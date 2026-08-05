@@ -14,5 +14,5 @@ public class TratamientoResponseDTO {
     private String descripcion;
     private Integer duracionMinutos;
     private BigDecimal precio;
+    private boolean active;
 }
-

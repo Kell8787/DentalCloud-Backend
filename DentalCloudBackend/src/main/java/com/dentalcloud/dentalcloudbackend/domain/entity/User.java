@@ -61,4 +61,8 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Rol role;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean active = true;
 }
