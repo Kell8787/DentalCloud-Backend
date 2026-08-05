@@ -44,6 +44,8 @@ migración. Las rutas canónicas nuevas aparecen en `openapi.yaml` y se
 implementarán por vertical slice; no se deben crear nombres alternos desde el
 frontend.
 
-Este documento no introduce todavía endpoints de almacenamiento binario ni
-expone `objectKey`: los documentos siguen siendo metadatos privados y las
-descargas futuras devolverán URLs firmadas de corta duración.
+Los documentos se cargan por `multipart/form-data` en `POST /api/documentos`.
+El backend calcula el checksum, guarda el binario mediante el adaptador privado
+y no acepta `objectKey` desde el cliente. Las respuestas exponen una URL firmada
+de corta duración; `GET /api/patients/me/documents` solo lista documentos
+visibles del paciente.

@@ -335,6 +335,75 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClinicalDocument'
+  /api/documentos:
+    post:
+      tags: [Clinical]
+      summary: Carga un documento clínico privado
+      operationId: uploadClinicalDocument
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, documentType, title]
+              properties:
+                file: { type: string, format: binary }
+                patientId: { type: string, format: uuid, nullable: true }
+                appointmentId: { type: string, format: uuid, nullable: true }
+                planId: { type: string, format: uuid, nullable: true }
+                documentType: { type: string, maxLength: 32 }
+                title: { type: string, maxLength: 180 }
+                visibleToPatient: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Documento almacenado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalDocument' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/documentos/{id}:
+    get:
+      tags: [Clinical]
+      summary: Consulta los metadatos de un documento autorizado
+      operationId: getClinicalDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Metadatos del documento
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalDocument' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /api/documentos/{id}/contenido:
+    get:
+      tags: [Clinical]
+      summary: Descarga contenido con URL firmada
+      operationId: downloadClinicalDocument
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: expiresAt
+          in: query
+          required: true
+          schema: { type: integer, format: int64 }
+        - name: signature
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Binario privado }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/inventory:
     get:
       tags: [Inventory]
@@ -540,6 +609,7 @@ components:
         mimeType: { type: string }
         sizeBytes: { type: integer, minimum: 1, format: int64 }
         visibleToPatient: { type: boolean }
+        downloadUrl: { type: string }
         createdAt: { type: string, format: date-time }
     PageAppointment:
       $ref: '#/components/schemas/Page'

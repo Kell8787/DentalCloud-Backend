@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
                         // Validación de token
                         .requestMatchers("/api/auth/validate").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/documentos/*/contenido").permitAll()
                         // Tratamientos: solo roles internos pueden crear
                         .requestMatchers(HttpMethod.POST, "/api/tratamientos").hasAnyRole("DOCTOR", "SECRETARIA", "ADMIN")
                         // Cualquier otra petición requiere autenticación

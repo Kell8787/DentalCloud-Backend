@@ -2,8 +2,9 @@
 
 Esta entrega prepara el modelo persistente para planes de tratamiento,
 documentos clínicos e instrucciones post-cita. Los endpoints de planes y pasos
-ya están disponibles para doctor, administrador y lectura propia del paciente;
-documentos e instrucciones aún esperan su capa de almacenamiento/publicación.
+ya están disponibles para doctor, administrador y lectura propia del paciente.
+Los documentos cuentan con almacenamiento privado local abstraído y URLs
+firmadas de corta duración; las instrucciones post-cita quedan para F2-B2-03.
 
 ## Entidades
 
@@ -31,7 +32,9 @@ para detectar ediciones concurrentes.
 
 ## Documentos
 
-`ClinicalDocument` conserva `mimeType`, `sizeBytes`, `checksum` y `objectKey`
-para que la futura capa de almacenamiento valide el archivo y emita URLs
-firmadas. No se almacenan binarios grandes en PostgreSQL ni se publican rutas
-permanentes.
+`ClinicalDocument` conserva `mimeType`, `sizeBytes`, `checksum` y una `objectKey`
+privada. `POST /api/documentos` recibe multipart, calcula el SHA-256 en el
+servidor, valida PDF/JPEG/PNG hasta 10 MB y nunca acepta `objectKey` desde el
+cliente. El adaptador local escribe fuera de PostgreSQL y puede sustituirse por
+S3/MinIO; la respuesta entrega una URL firmada con expiración de 5 minutos.
+`GET /api/patients/me/documents` solo devuelve metadatos visibles del paciente.
