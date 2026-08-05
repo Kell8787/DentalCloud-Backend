@@ -16,6 +16,7 @@ tags:
   - name: Treatments
   - name: Clinical
   - name: Inventory
+  - name: Dashboard
 paths:
   /api/dashboard/patient:
     get:
@@ -49,6 +50,30 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SecretaryDashboard' }
         '403': { $ref: '#/components/responses/Forbidden' }
+  /api/dashboard/doctor:
+    get:
+      tags: [Dashboard]
+      summary: Dashboard y agenda del doctor autenticado
+      operationId: getDoctorDashboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: from
+          in: query
+          schema: { type: string, format: date }
+          description: Inicio del rango; si se envía sin to, consulta ese día.
+        - name: to
+          in: query
+          schema: { type: string, format: date }
+          description: Fin inclusivo del rango; el máximo permitido es 31 días.
+      responses:
+        '200':
+          description: Próximas citas y calendario exclusivo del doctor autenticado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DoctorDashboard' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/admin/patients:
     get:
       tags: [Patients]
@@ -943,6 +968,27 @@ components:
         lowStockProducts:
           type: array
           items: { $ref: '#/components/schemas/InventoryItem' }
+    DoctorDashboard:
+      type: object
+      required: [doctorId, doctorName, from, to, nextAppointments, calendar]
+      properties:
+        doctorId: { type: string, format: uuid }
+        doctorName: { type: string }
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        nextAppointments:
+          type: array
+          items: { $ref: '#/components/schemas/Appointment' }
+        calendar:
+          type: array
+          items:
+            type: object
+            required: [date, appointments]
+            properties:
+              date: { type: string, format: date }
+              appointments:
+                type: array
+                items: { $ref: '#/components/schemas/Appointment' }
     PageAppointment:
       $ref: '#/components/schemas/Page'
     InventoryItem:

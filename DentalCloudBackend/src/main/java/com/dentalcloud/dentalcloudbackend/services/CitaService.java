@@ -515,6 +515,16 @@ public class CitaService {
         return appointments.stream().map(this::map).toList();
     }
 
+    public List<CitaResponseDTO> obtenerAgendaDoctorPorRango(String emailDoctor,
+                                                              LocalDate from,
+                                                              LocalDate to) {
+        Dentist dentist = dentistRepository.findByUserEmail(emailDoctor)
+                .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
+        return citasRepository.findByDentistAndStartsAtGreaterThanEqualAndStartsAtLessThanOrderByStartsAtAsc(
+                        dentist, from.atStartOfDay(), to.plusDays(1).atStartOfDay())
+                .stream().map(this::map).toList();
+    }
+
     public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate date, EstadoCita legacyStatus) {
         List<Citas> appointments;
         if (date == null) {
