@@ -3,6 +3,7 @@ package com.dentalcloud.dentalcloudbackend.services;
 import com.dentalcloud.dentalcloudbackend.domain.dto.TratamientoRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.TratamientoResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Tratamiento;
+import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.TratamientoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,7 +17,12 @@ public class TratamientoService {
     private final TratamientoRepository tratamientoRepository;
 
     public List<TratamientoResponseDTO> listarTratamientos() {
-        return tratamientoRepository.findAll()
+        return listarTratamientos(false);
+    }
+
+    public List<TratamientoResponseDTO> listarTratamientos(boolean includeInactive) {
+        return (includeInactive ? tratamientoRepository.findAllByOrderByNombreAsc()
+                : tratamientoRepository.findByActiveTrueOrderByNombreAsc())
                 .stream()
                 .map(this::mapearAResponse)
                 .toList();
@@ -28,7 +34,15 @@ public class TratamientoService {
                 .descripcion(request.getDescripcion())
                 .duracionMinutos(request.getDuracionMinutos())
                 .precio(request.getPrecio())
+                .active(request.getActive() == null || request.getActive())
                 .build();
+        return mapearAResponse(tratamientoRepository.save(tratamiento));
+    }
+
+    public TratamientoResponseDTO cambiarEstado(java.util.UUID id, boolean active) {
+        Tratamiento tratamiento = tratamientoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
+        tratamiento.setActive(active);
         return mapearAResponse(tratamientoRepository.save(tratamiento));
     }
 
@@ -39,6 +53,7 @@ public class TratamientoService {
                 .descripcion(t.getDescripcion())
                 .duracionMinutos(t.getDuracionMinutos())
                 .precio(t.getPrecio())
+                .active(t.isActive())
                 .build();
     }
 }

@@ -15,4 +15,5 @@ public class TratamientoRequestDTO {
     private Integer duracionMinutos;
     @NotNull
     private BigDecimal precio;
+    private Boolean active;
 }

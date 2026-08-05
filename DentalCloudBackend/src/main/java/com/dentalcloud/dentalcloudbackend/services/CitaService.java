@@ -140,7 +140,7 @@ public class CitaService {
         // Serializa las reservas del mismo doctor antes de comprobar solapamientos.
         Dentist dentist = dentistRepository.findByIdForUpdate(request.getDoctorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
-        Tratamiento treatment = tratamientoRepository.findById(request.getTreatmentId())
+        Tratamiento treatment = tratamientoRepository.findByIdAndActiveTrue(request.getTreatmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
 
         LocalDateTime endsAt = validateInterval(request.getStartsAt(), treatment.getDuracionMinutos());
@@ -173,7 +173,7 @@ public class CitaService {
         if (date == null || date.isBefore(today())) {
             throw new BusinessException("La fecha no puede ser en el pasado");
         }
-        Tratamiento treatment = tratamientoRepository.findById(treatmentId)
+        Tratamiento treatment = tratamientoRepository.findByIdAndActiveTrue(treatmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
         ClinicSchedule schedule = scheduleFor(date.getDayOfWeek());
         if (schedule == null || !schedule.isEnabled()) {
@@ -363,7 +363,7 @@ public class CitaService {
                 : dentistRepository.findById(request.getDentistaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
         Tratamiento treatment = request.getTratamientoId() == null ? appointment.getTratamiento()
-                : tratamientoRepository.findById(request.getTratamientoId())
+                : tratamientoRepository.findByIdAndActiveTrue(request.getTratamientoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
         LocalDate date = request.getFecha() == null ? appointment.getStartsAt().toLocalDate() : request.getFecha();
         LocalTime time = request.getHoraInicio() == null ? appointment.getStartsAt().toLocalTime() : request.getHoraInicio();

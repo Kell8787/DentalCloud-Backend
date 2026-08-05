@@ -112,6 +112,13 @@ seguir la máquina de estados del contrato.
 que las ediciones clínicas concurrentes fallen con `409` en lugar de
 sobrescribirse silenciosamente.
 
+## V9 — catálogo activo
+
+`V9__add_treatment_active_flag.sql` agrega `active` al catálogo de
+tratamientos. Los tratamientos inactivos dejan de aparecer en el catálogo
+normal y no pueden seleccionarse al crear planes, citas o slots; los planes y
+citas históricos se conservan.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
@@ -122,5 +129,6 @@ sobrescribirse silenciosamente.
 - `V6__add_appointment_idempotency.sql`: reintentos y reservas concurrentes.
 - `V7__add_appointment_status_events.sql`: historial inmutable de transiciones.
 - `V8__add_treatment_plan_versioning.sql`: control optimista de planes y pasos.
-- `V9__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
+- `V9__add_treatment_active_flag.sql`: elegibilidad del catálogo clínico.
+- `V10__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
 - No editar una migración que ya se ejecutó en un entorno compartido.

@@ -54,7 +54,7 @@ public class TreatmentPlanService {
         Dentist dentist = dentistRepository.findById(request.getDentistId())
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
         assertDoctorOwnsDentist(actor, dentist);
-        tratamientoRepository.findById(request.getTreatmentId())
+        tratamientoRepository.findByIdAndActiveTrue(request.getTreatmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
         validateDates(request.getStartedAt(), request.getExpectedEndAt());
 
