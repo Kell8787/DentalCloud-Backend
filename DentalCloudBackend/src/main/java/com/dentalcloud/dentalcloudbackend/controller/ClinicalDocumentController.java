@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,12 +48,36 @@ public class ClinicalDocumentController {
         return ResponseEntity.ok(documentService.listOwn(userDetails.getUsername()));
     }
 
+    @GetMapping("/citas/{appointmentId}/documentos")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<List<ClinicalDocumentResponseDTO>> byAppointment(
+            @PathVariable UUID appointmentId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(documentService.listForAppointment(appointmentId, userDetails.getUsername()));
+    }
+
+    @GetMapping("/treatment-plans/{planId}/documentos")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<List<ClinicalDocumentResponseDTO>> byPlan(
+            @PathVariable UUID planId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(documentService.listForPlan(planId, userDetails.getUsername()));
+    }
+
     @GetMapping("/documentos/{id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'DOCTOR', 'ADMIN')")
     public ResponseEntity<ClinicalDocumentResponseDTO> get(
             @PathVariable UUID id,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(documentService.get(id, userDetails.getUsername()));
+    }
+
+    @PatchMapping("/documentos/{id}/publicar")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<ClinicalDocumentResponseDTO> publish(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(documentService.publish(id, userDetails.getUsername()));
     }
 
     @GetMapping("/documentos/{id}/contenido")

@@ -72,4 +72,26 @@ class ClinicalDocumentServiceTest {
         assertThat(response.getDownloadUrl()).contains("expiresAt=123").contains("signature=signed");
         assertThat(response.getDownloadUrl()).doesNotContain("objectKey");
     }
+
+    @Test
+    void publishesDocumentForTheOwningDoctor() {
+        UUID documentId = UUID.randomUUID();
+        User doctor = User.builder().id(UUID.randomUUID()).email("doctor@example.com").role(Rol.DOCTOR).build();
+        ClinicalDocument document = ClinicalDocument.builder().id(documentId).patientId(UUID.randomUUID())
+                .appointmentId(UUID.randomUUID()).objectKey("clinical/private").documentType("XRAY")
+                .title("Radiografía").mimeType("application/pdf").sizeBytes(10L)
+                .checksum("checksum").createdBy(doctor.getId()).visibleToPatient(false).build();
+        Dentist dentist = Dentist.builder().id(UUID.randomUUID()).user(doctor).build();
+        var appointment = com.dentalcloud.dentalcloudbackend.domain.entity.Citas.builder()
+                .id(document.getAppointmentId()).dentist(dentist).build();
+        when(userRepository.findByEmail(doctor.getEmail())).thenReturn(Optional.of(doctor));
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(document));
+        when(citasRepository.findById(document.getAppointmentId())).thenReturn(Optional.of(appointment));
+        when(signer.sign(documentId)).thenReturn(new DocumentDownloadSigner.SignedDownload(123L, "signed"));
+        when(documentRepository.save(any(ClinicalDocument.class))).thenReturn(document);
+
+        var response = service.publish(documentId, doctor.getEmail());
+
+        assertThat(response.isVisibleToPatient()).isTrue();
+    }
 }

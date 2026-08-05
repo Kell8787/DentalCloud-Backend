@@ -43,6 +43,14 @@ public class AftercareInstructionController {
         return ResponseEntity.ok(instructionService.listOwn(userDetails.getUsername()));
     }
 
+    @GetMapping("/citas/{appointmentId}/aftercare")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<List<AftercareInstructionResponseDTO>> byAppointment(
+            @PathVariable UUID appointmentId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(instructionService.listForAppointment(appointmentId, userDetails.getUsername()));
+    }
+
     @GetMapping("/aftercare/{id}")
     @PreAuthorize("hasAnyRole('CUSTOMER', 'DOCTOR', 'ADMIN')")
     public ResponseEntity<AftercareInstructionResponseDTO> get(

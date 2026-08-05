@@ -65,6 +65,15 @@ public class AftercareInstructionService {
     }
 
     @Transactional
+    public List<AftercareInstructionResponseDTO> listForAppointment(UUID appointmentId, String email) {
+        User actor = actor(email);
+        Citas appointment = appointment(appointmentId);
+        assertCanManage(appointment, actor);
+        return instructionRepository.findByAppointmentIdOrderByCreatedAtDesc(appointmentId).stream()
+                .map(this::map).toList();
+    }
+
+    @Transactional
     public AftercareInstructionResponseDTO get(UUID id, String email) {
         AftercareInstruction instruction = instruction(id);
         assertCanRead(instruction, actor(email));

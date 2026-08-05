@@ -831,6 +831,88 @@ paths:
       responses:
         '200': { description: Binario privado }
         '422': { $ref: '#/components/responses/ValidationError' }
+  /api/citas/{appointmentId}/documentos:
+    get:
+      tags: [Clinical]
+      summary: Lista documentos vinculados a una cita
+      operationId: listAppointmentDocuments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Documentos de la cita
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ClinicalDocument' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/citas/{appointmentId}/aftercare:
+    get:
+      tags: [Clinical]
+      summary: Lista instrucciones de una cita
+      operationId: listAppointmentAftercare
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Instrucciones post-cita
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AftercareInstruction' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/treatment-plans/{planId}/documentos:
+    get:
+      tags: [Clinical]
+      summary: Lista documentos vinculados a un plan
+      operationId: listPlanDocuments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: planId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Documentos del plan
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ClinicalDocument' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /api/documentos/{id}/publicar:
+    patch:
+      tags: [Clinical]
+      summary: Publica un documento para el paciente
+      operationId: publishClinicalDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Documento publicado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ClinicalDocument' }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /api/inventory:
     get:
       tags: [Inventory]

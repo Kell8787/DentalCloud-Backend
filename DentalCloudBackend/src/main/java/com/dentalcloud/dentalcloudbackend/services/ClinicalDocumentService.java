@@ -103,6 +103,38 @@ public class ClinicalDocumentService {
     }
 
     @Transactional
+    public List<ClinicalDocumentResponseDTO> listForAppointment(UUID appointmentId, String email) {
+        User actor = user(email);
+        Citas appointment = citasRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cita no encontrada"));
+        assertCanManageAppointment(appointment, actor);
+        return documentRepository.findByAppointmentIdOrderByCreatedAtDesc(appointmentId).stream()
+                .map(this::map).toList();
+    }
+
+    @Transactional
+    public List<ClinicalDocumentResponseDTO> listForPlan(UUID planId, String email) {
+        User actor = user(email);
+        PatientTreatmentPlan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new ResourceNotFoundException("Plan de tratamiento no encontrado"));
+        assertCanManagePlan(plan, actor);
+        return documentRepository.findByPlanIdOrderByCreatedAtDesc(planId).stream()
+                .map(this::map).toList();
+    }
+
+    @Transactional
+    public ClinicalDocumentResponseDTO publish(UUID documentId, String email) {
+        User actor = user(email);
+        ClinicalDocument document = document(documentId);
+        assertCanAccess(document, actor);
+        if (actor.getRole() == Rol.CUSTOMER) {
+            throw new BusinessException("El paciente no puede publicar documentos clínicos");
+        }
+        document.setVisibleToPatient(true);
+        return map(documentRepository.save(document));
+    }
+
+    @Transactional
     public ClinicalDocumentResponseDTO get(UUID id, String email) {
         ClinicalDocument document = document(id);
         assertCanAccess(document, user(email));
@@ -166,6 +198,16 @@ public class ClinicalDocumentService {
                 || !appointment.getDentist().getUser().getId().equals(actor.getId()))) {
             throw new BusinessException("No puedes gestionar documentos de otro doctor");
         }
+    }
+
+    private void assertCanManageAppointment(Citas appointment, User actor) {
+        if (actor.getRole() == Rol.ADMIN) return;
+        assertDoctorOwnsAppointment(actor, appointment);
+    }
+
+    private void assertCanManagePlan(PatientTreatmentPlan plan, User actor) {
+        if (actor.getRole() == Rol.ADMIN) return;
+        assertDoctorOwnsPlan(actor, plan);
     }
 
     private void assertDoctorOwnsPlan(User actor, PatientTreatmentPlan plan) {
