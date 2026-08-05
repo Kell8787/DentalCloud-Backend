@@ -319,6 +319,52 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AftercareInstruction'
+  /api/aftercare:
+    post:
+      tags: [Clinical]
+      summary: Crea una instrucción post-cita
+      operationId: createAftercareInstruction
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [appointmentId, title, body]
+              properties:
+                appointmentId: { type: string, format: uuid }
+                title: { type: string, maxLength: 180 }
+                body: { type: string, maxLength: 10000 }
+                priority: { type: string, enum: [LOW, NORMAL, HIGH] }
+                publish: { type: boolean, default: false }
+      responses:
+        '201':
+          description: Instrucción creada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AftercareInstruction' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/aftercare/{id}/publicar:
+    patch:
+      tags: [Clinical]
+      summary: Publica una instrucción post-cita propia
+      operationId: publishAftercareInstruction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Instrucción publicada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AftercareInstruction' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /api/patients/me/documents:
     get:
       tags: [Clinical]

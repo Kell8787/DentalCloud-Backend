@@ -16,9 +16,9 @@ firmadas de corta duración; las instrucciones post-cita quedan para F2-B2-03.
 - `ClinicalDocument`: solo guarda metadatos y una `objectKey` privada para el
   almacenamiento externo. Debe relacionarse con una cita o un plan y puede
   marcarse como visible para el paciente.
-- `AftercareInstruction`: contenido posterior a una cita. Solo se considera
-  publicado cuando `publishedAt` tiene valor; la prioridad acepta `LOW`,
-  `NORMAL` o `HIGH`.
+- `AftercareInstruction`: contenido posterior a una cita completada. Solo se
+  considera publicado cuando `publishedAt` tiene valor; la prioridad acepta
+  `LOW`, `NORMAL` o `HIGH`.
 
 ## Seguridad
 
@@ -38,3 +38,11 @@ servidor, valida PDF/JPEG/PNG hasta 10 MB y nunca acepta `objectKey` desde el
 cliente. El adaptador local escribe fuera de PostgreSQL y puede sustituirse por
 S3/MinIO; la respuesta entrega una URL firmada con expiración de 5 minutos.
 `GET /api/patients/me/documents` solo devuelve metadatos visibles del paciente.
+
+## Instrucciones post-cita
+
+`POST /api/aftercare` permite al doctor dueño de la cita o al administrador
+crear un borrador o publicarlo. El paciente se infiere desde la cita y nunca se
+acepta desde el cliente. `PATCH /api/aftercare/{id}/publicar` publica un borrador
+después de comprobar nuevamente ownership y que la cita esté completada.
+`GET /api/patients/me/aftercare` solo devuelve instrucciones publicadas propias.

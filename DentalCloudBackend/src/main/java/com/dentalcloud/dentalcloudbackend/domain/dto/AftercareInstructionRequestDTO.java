@@ -14,14 +14,12 @@ public class AftercareInstructionRequestDTO {
     @NotNull
     private UUID appointmentId;
 
-    @NotNull
-    private UUID patientId;
-
     @NotBlank
     @Size(max = 180)
     private String title;
 
     @NotBlank
+    @Size(max = 10000)
     private String body;
 
     @Pattern(regexp = "LOW|NORMAL|HIGH")
