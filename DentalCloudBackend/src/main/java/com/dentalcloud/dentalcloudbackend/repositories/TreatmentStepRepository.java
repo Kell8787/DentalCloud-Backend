@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface TreatmentStepRepository extends JpaRepository<TreatmentStep, UUID> {
 
     List<TreatmentStep> findByPlanIdOrderByPositionAsc(UUID planId);
+
+    boolean existsByPlanIdAndPosition(UUID planId, Integer position);
 }

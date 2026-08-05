@@ -19,4 +19,5 @@ public class TreatmentStepResponseDTO {
     private UUID completedBy;
     private String observation;
     private Instant createdAt;
+    private Long version;
 }

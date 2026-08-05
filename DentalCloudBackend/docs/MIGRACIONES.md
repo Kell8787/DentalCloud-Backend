@@ -106,6 +106,12 @@ transición con estado anterior, estado nuevo, motivo, actor y timestamp. La
 creación registra el estado inicial; las acciones posteriores solo pueden
 seguir la máquina de estados del contrato.
 
+## V8 — versionado de planes
+
+`V8__add_treatment_plan_versioning.sql` agrega `version` a planes y pasos para
+que las ediciones clínicas concurrentes fallen con `409` en lugar de
+sobrescribirse silenciosamente.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
@@ -115,5 +121,6 @@ seguir la máquina de estados del contrato.
 - `V5__add_clinic_schedule.sql`: horario semanal configurable.
 - `V6__add_appointment_idempotency.sql`: reintentos y reservas concurrentes.
 - `V7__add_appointment_status_events.sql`: historial inmutable de transiciones.
-- `V8__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
+- `V8__add_treatment_plan_versioning.sql`: control optimista de planes y pasos.
+- `V9__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
 - No editar una migración que ya se ejecutó en un entorno compartido.

@@ -21,4 +21,6 @@ public class PatientTreatmentPlanResponseDTO {
     private String cancellationReason;
     private Instant createdAt;
     private List<TreatmentStepResponseDTO> steps;
+    private TreatmentPlanProgressDTO progress;
+    private Long version;
 }

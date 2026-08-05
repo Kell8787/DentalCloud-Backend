@@ -1,8 +1,9 @@
 # Esqueleto clínico (DentalCloud Backend)
 
 Esta entrega prepara el modelo persistente para planes de tratamiento,
-documentos clínicos e instrucciones post-cita. Todavía no expone endpoints ni
-interfaz de usuario; el contrato definitivo se cerrará en `F0-X-01`.
+documentos clínicos e instrucciones post-cita. Los endpoints de planes y pasos
+ya están disponibles para doctor, administrador y lectura propia del paciente;
+documentos e instrucciones aún esperan su capa de almacenamiento/publicación.
 
 ## Entidades
 
@@ -18,13 +19,15 @@ interfaz de usuario; el contrato definitivo se cerrará en `F0-X-01`.
   publicado cuando `publishedAt` tiene valor; la prioridad acepta `LOW`,
   `NORMAL` o `HIGH`.
 
-## Seguridad prevista
+## Seguridad
 
 Los identificadores de paciente no sustituyen las comprobaciones de ownership
 del servicio. El paciente solo podrá consultar sus propios planes,
 documentos visibles e instrucciones publicadas. El doctor podrá gestionar el
-contenido clínico de sus pacientes y Secretaría no tendrá acceso a notas ni a
-documentos clínicos.
+contenido clínico de sus pacientes y Secretaría no tiene acceso a planes ni
+documentos clínicos. El porcentaje se calcula como pasos `COMPLETED` dividido
+entre pasos totales; el cliente no puede enviarlo. Planes y pasos usan `version`
+para detectar ediciones concurrentes.
 
 ## Documentos
 

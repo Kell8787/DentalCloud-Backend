@@ -64,4 +64,8 @@ public class TreatmentStep {
     @Builder.Default
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
+
+    @jakarta.persistence.Version
+    @Column(nullable = false)
+    private Long version;
 }
