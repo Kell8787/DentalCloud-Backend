@@ -17,6 +17,20 @@ tags:
   - name: Clinical
   - name: Inventory
 paths:
+  /api/dashboard/patient:
+    get:
+      tags: [Dashboard]
+      summary: Dashboard agregado del paciente autenticado
+      operationId: getPatientDashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Planes, cita próxima, historial, instrucciones y documentos visibles
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PatientDashboard' }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /api/auth/login:
     post:
       tags: [Auth]
@@ -657,6 +671,26 @@ components:
         visibleToPatient: { type: boolean }
         downloadUrl: { type: string }
         createdAt: { type: string, format: date-time }
+    PatientDashboard:
+      type: object
+      required: [plans, appointmentHistory, aftercareInstructions, documents]
+      properties:
+        plans:
+          type: array
+          items: { $ref: '#/components/schemas/TreatmentPlan' }
+        nextAppointment:
+          allOf:
+            - $ref: '#/components/schemas/Appointment'
+          nullable: true
+        appointmentHistory:
+          type: array
+          items: { $ref: '#/components/schemas/Appointment' }
+        aftercareInstructions:
+          type: array
+          items: { $ref: '#/components/schemas/AftercareInstruction' }
+        documents:
+          type: array
+          items: { $ref: '#/components/schemas/ClinicalDocument' }
     PageAppointment:
       $ref: '#/components/schemas/Page'
     PageInventory:

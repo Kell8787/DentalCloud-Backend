@@ -46,3 +46,10 @@ crear un borrador o publicarlo. El paciente se infiere desde la cita y nunca se
 acepta desde el cliente. `PATCH /api/aftercare/{id}/publicar` publica un borrador
 después de comprobar nuevamente ownership y que la cita esté completada.
 `GET /api/patients/me/aftercare` solo devuelve instrucciones publicadas propias.
+
+## Dashboard del paciente
+
+`GET /api/dashboard/patient` compone en una sola respuesta los planes propios,
+la próxima cita, el historial de citas, las instrucciones publicadas y los
+documentos visibles. Todos los bloques se resuelven a partir del usuario
+autenticado; no se acepta un `patientId` en esta operación.
