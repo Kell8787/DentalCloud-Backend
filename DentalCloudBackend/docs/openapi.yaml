@@ -49,6 +49,98 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SecretaryDashboard' }
         '403': { $ref: '#/components/responses/Forbidden' }
+  /api/admin/patients:
+    get:
+      tags: [Patients]
+      summary: Busca pacientes administrativos sin campos clínicos
+      operationId: searchAdministrativePatients
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Pacientes encontrados
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/User' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      tags: [Patients]
+      summary: Crea un paciente inactivo para activación administrativa
+      operationId: createAdministrativePatient
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdministrativePatientCreate' }
+      responses:
+        '201':
+          description: Paciente creado sin información clínica
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+  /api/admin/patients/{id}:
+    patch:
+      tags: [Patients]
+      summary: Edita datos administrativos de un paciente
+      operationId: updateAdministrativePatient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AdministrativePatientUpdate' }
+      responses:
+        '200':
+          description: Paciente actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+  /api/admin/patients/{id}/activation:
+    patch:
+      tags: [Patients]
+      summary: Activa o desactiva el acceso de un paciente
+      operationId: activateAdministrativePatient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [active]
+              properties:
+                active: { type: boolean }
+      responses:
+        '200':
+          description: Estado de acceso actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '404': { $ref: '#/components/responses/NotFound' }
   /api/auth/login:
     post:
       tags: [Auth]
@@ -630,6 +722,37 @@ components:
         role:
           type: string
           enum: [CUSTOMER, SECRETARIA, DOCTOR, ADMIN]
+        active: { type: boolean }
+    AdministrativePatientCreate:
+      type: object
+      required: [firstName, lastName, direccion, genero, dui, birthDate, email, phoneNumber,
+        emergencyName, emergencyEmail, emergencyPhone, emergencyRelationship]
+      properties:
+        firstName: { type: string }
+        secondName: { type: string }
+        lastName: { type: string }
+        secondLastName: { type: string }
+        direccion: { type: string }
+        genero: { type: string, enum: [MASCULINO, FEMENINO] }
+        dui: { type: string }
+        birthDate: { type: string, format: date }
+        email: { type: string, format: email }
+        phoneNumber: { type: string }
+        emergencyName: { type: string }
+        emergencyEmail: { type: string, format: email }
+        emergencyPhone: { type: string }
+        emergencyRelationship: { type: string }
+    AdministrativePatientUpdate:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        direccion: { type: string }
+        genero: { type: string, enum: [MASCULINO, FEMENINO] }
+        dui: { type: string }
+        birthDate: { type: string, format: date }
+        email: { type: string, format: email }
+        phoneNumber: { type: string }
     AppointmentStatus:
       type: string
       enum: [SOLICITADA, CONFIRMADA, RECHAZADA, CANCELADA, INASISTENCIA, COMPLETADA]
@@ -890,6 +1013,11 @@ components:
             fieldErrors: {}
             traceId: 8f2e8db4-4d11-4c3e-a37f-8be9c8bb75c9
             timestamp: '2026-08-04T15:30:00Z'
+    Conflict:
+      description: Recurso duplicado o conflicto de concurrencia
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ApiError' }
     InvalidTransition:
       description: Transición de estado no permitida
       content:

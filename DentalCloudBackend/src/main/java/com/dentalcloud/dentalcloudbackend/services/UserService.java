@@ -73,7 +73,7 @@ public class UserService {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole().name())
-                .active(true)
+                .active(user.isActive())
                 .build();
     }
 }

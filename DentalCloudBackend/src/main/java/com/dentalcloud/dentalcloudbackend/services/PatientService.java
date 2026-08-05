@@ -5,6 +5,9 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.ActualizarPerfilRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.ContactoEmergenciaDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InformacionMedicaDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.UserResponseDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.PatientAdminCreateRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.PatientAdminUpdateRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.UserActivationRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.ContactoEmergencia;
 import com.dentalcloud.dentalcloudbackend.domain.entity.InformacionMedica;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
@@ -13,12 +16,14 @@ import com.dentalcloud.dentalcloudbackend.domain.enums.Parentesco;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
 import java.util.List;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
+import com.dentalcloud.dentalcloudbackend.exceptions.ConflictException;
 import com.dentalcloud.dentalcloudbackend.repositories.ContactoEmergenciaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.InformacionMedicaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +32,7 @@ public class PatientService {
     private final UserRepository userRepository;
     private final ContactoEmergenciaRepository contactoEmergenciaRepository;
     private final InformacionMedicaRepository informacionMedicaRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // GET /patients/profile
     public UserResponseDTO obtenerPerfil(String email) {
@@ -170,9 +176,79 @@ public class PatientService {
                     .filter(u -> (u.getFirstName() + " " + u.getLastName()).toLowerCase().contains(q)
                             || (u.getDui() != null && u.getDui().contains(q))
                             || (u.getPhoneNumber() != null && u.getPhoneNumber().contains(q)))
-                    .toList();
+                .toList();
         }
         return pacientes.stream().map(this::mapearUserAResponse).toList();
+    }
+
+    @Transactional
+    public UserResponseDTO crearPacienteAdministrativo(PatientAdminCreateRequestDTO request) {
+        assertUnique(request.getEmail(), request.getDui(), request.getPhoneNumber(), null);
+        User patient = User.builder()
+                .firstName(request.getFirstName()).secondName(request.getSecondName())
+                .lastName(request.getLastName()).secondLastName(request.getSecondLastName())
+                .direccion(request.getDireccion()).genero(Genero.valueOf(request.getGenero().toUpperCase()))
+                .dui(request.getDui()).birthDate(request.getBirthDate()).email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber()).role(Rol.CUSTOMER)
+                .password(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
+                .active(false).build();
+        User saved = userRepository.save(patient);
+        contactoEmergenciaRepository.save(ContactoEmergencia.builder().user(saved)
+                .nombreCompleto(request.getEmergencyName()).email(request.getEmergencyEmail())
+                .phoneNumber(request.getEmergencyPhone())
+                .parentesco(Parentesco.valueOf(request.getEmergencyRelationship().toUpperCase())).build());
+        informacionMedicaRepository.save(InformacionMedica.builder().user(saved)
+                .alergias(List.of()).medicamentos(List.of()).build());
+        return mapearUserAResponse(saved);
+    }
+
+    @Transactional
+    public UserResponseDTO actualizarPacienteAdministrativo(java.util.UUID id,
+                                                             PatientAdminUpdateRequestDTO request) {
+        User patient = patient(id);
+        assertUnique(request.getEmail(), request.getDui(), request.getPhoneNumber(), id);
+        if (request.getFirstName() != null) patient.setFirstName(request.getFirstName());
+        if (request.getSecondName() != null) patient.setSecondName(request.getSecondName());
+        if (request.getLastName() != null) patient.setLastName(request.getLastName());
+        if (request.getSecondLastName() != null) patient.setSecondLastName(request.getSecondLastName());
+        if (request.getDireccion() != null) patient.setDireccion(request.getDireccion());
+        if (request.getGenero() != null) patient.setGenero(Genero.valueOf(request.getGenero().toUpperCase()));
+        if (request.getBirthDate() != null) patient.setBirthDate(request.getBirthDate());
+        if (request.getEmail() != null) patient.setEmail(request.getEmail());
+        if (request.getDui() != null) patient.setDui(request.getDui());
+        if (request.getPhoneNumber() != null) patient.setPhoneNumber(request.getPhoneNumber());
+        return mapearUserAResponse(userRepository.save(patient));
+    }
+
+    @Transactional
+    public UserResponseDTO activarPaciente(java.util.UUID id, UserActivationRequestDTO request) {
+        User patient = patient(id);
+        patient.setActive(request.isActive());
+        return mapearUserAResponse(userRepository.save(patient));
+    }
+
+    private User patient(java.util.UUID id) {
+        User patient = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
+        if (patient.getRole() != Rol.CUSTOMER) {
+            throw new ResourceNotFoundException("Paciente no encontrado");
+        }
+        return patient;
+    }
+
+    private void assertUnique(String email, String dui, String phone, java.util.UUID currentId) {
+        if (email != null && userRepository.findByEmail(email)
+                .filter(user -> !user.getId().equals(currentId)).isPresent()) {
+            throw new ConflictException("PATIENT_EMAIL_EXISTS", "El email ya está registrado");
+        }
+        if (dui != null && userRepository.findByDui(dui)
+                .filter(user -> currentId == null || !user.getId().equals(currentId)).isPresent()) {
+                throw new ConflictException("PATIENT_DUPLICATE", "El DUI ya está registrado");
+        }
+        if (phone != null && userRepository.findByPhoneNumber(phone)
+                .filter(user -> currentId == null || !user.getId().equals(currentId)).isPresent()) {
+            throw new ConflictException("PATIENT_DUPLICATE", "El teléfono ya está registrado");
+        }
     }
 
     private UserResponseDTO mapearUserAResponse(User user) {
@@ -189,6 +265,7 @@ public class PatientService {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole().name())
+                .active(user.isActive())
                 .build();
     }
 }

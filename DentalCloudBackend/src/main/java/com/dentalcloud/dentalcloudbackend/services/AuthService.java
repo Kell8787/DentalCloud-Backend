@@ -164,7 +164,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole().name())
-                .active(true)
+                .active(user.isActive())
                 .build();
     }
 

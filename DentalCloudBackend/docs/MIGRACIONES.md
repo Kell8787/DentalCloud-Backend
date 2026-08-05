@@ -119,6 +119,13 @@ tratamientos. Los tratamientos inactivos dejan de aparecer en el catálogo
 normal y no pueden seleccionarse al crear planes, citas o slots; los planes y
 citas históricos se conservan.
 
+## V10 — activación de pacientes
+
+`V10__add_user_activation_flag.sql` agrega `active` a `dental_users` con valor
+`TRUE` para los usuarios existentes. Las altas administrativas de pacientes
+quedan inicialmente inactivas hasta que un usuario autorizado las active; el
+login y la autenticación JWT rechazan cuentas inactivas.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
@@ -130,5 +137,5 @@ citas históricos se conservan.
 - `V7__add_appointment_status_events.sql`: historial inmutable de transiciones.
 - `V8__add_treatment_plan_versioning.sql`: control optimista de planes y pasos.
 - `V9__add_treatment_active_flag.sql`: elegibilidad del catálogo clínico.
-- `V10__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
+- `V10__add_user_activation_flag.sql`: activación administrativa de pacientes.
 - No editar una migración que ya se ejecutó en un entorno compartido.
