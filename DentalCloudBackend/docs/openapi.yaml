@@ -31,6 +31,24 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/PatientDashboard' }
         '403': { $ref: '#/components/responses/Forbidden' }
+  /api/dashboard/secretary:
+    get:
+      tags: [Dashboard]
+      summary: Dashboard semanal de Secretaría
+      operationId: getSecretaryDashboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: weekOf
+          in: query
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: KPIs de la semana, agenda del día y alertas de stock
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SecretaryDashboard' }
+        '403': { $ref: '#/components/responses/Forbidden' }
   /api/auth/login:
     post:
       tags: [Auth]
@@ -766,8 +784,34 @@ components:
         documents:
           type: array
           items: { $ref: '#/components/schemas/ClinicalDocument' }
+    SecretaryDashboard:
+      type: object
+      required: [weekOf, totalAppointments, requestedAppointments, confirmedAppointments,
+        cancelledAppointments, todayAppointments, lowStockProducts]
+      properties:
+        weekOf: { type: string, format: date }
+        totalAppointments: { type: integer, format: int64 }
+        requestedAppointments: { type: integer, format: int64 }
+        confirmedAppointments: { type: integer, format: int64 }
+        cancelledAppointments: { type: integer, format: int64 }
+        todayAppointments:
+          type: array
+          items: { $ref: '#/components/schemas/Appointment' }
+        lowStockProducts:
+          type: array
+          items: { $ref: '#/components/schemas/InventoryItem' }
     PageAppointment:
       $ref: '#/components/schemas/Page'
+    InventoryItem:
+      type: object
+      required: [id, name, quantity, minimumStock, unit]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        quantity: { type: integer, minimum: 0 }
+        minimumStock: { type: integer, minimum: 0 }
+        unit: { type: string }
+        categoryId: { type: string, format: uuid }
     PageInventory:
       $ref: '#/components/schemas/Page'
     Page:

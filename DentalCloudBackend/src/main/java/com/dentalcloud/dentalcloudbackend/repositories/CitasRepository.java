@@ -31,6 +31,11 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
                        @Param("patientId") UUID patientId,
                        Pageable pageable);
 
+    long countByStartsAtGreaterThanEqualAndStartsAtLessThan(LocalDateTime fromAt, LocalDateTime toAt);
+
+    long countByStatusAndStartsAtGreaterThanEqualAndStartsAtLessThan(
+            AppointmentStatus status, LocalDateTime fromAt, LocalDateTime toAt);
+
     List<Citas> findByUserAndStatusInOrderByStartsAtAsc(User user, Collection<AppointmentStatus> statuses);
 
     List<Citas> findByUserAndStartsAtGreaterThanEqualAndStatusInOrderByStartsAtAsc(
