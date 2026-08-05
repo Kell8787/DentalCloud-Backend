@@ -144,7 +144,7 @@ class PostgreSqlFlywayIntegrationTest {
                 Integer.class
         );
 
-        assertThat(appliedMigrations).isEqualTo(12);
+        assertThat(appliedMigrations).isEqualTo(13);
         assertThat(seededDoctors).isGreaterThanOrEqualTo(2);
         assertThat(inventoryColumns).isEqualTo(3);
         assertThat(stockMovementTables).isEqualTo(1);
