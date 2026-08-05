@@ -16,6 +16,7 @@ Backend REST API para la gestión de una clínica dental. Construido con **Sprin
 - [Endpoints — Citas](#-endpoints--citas)
 - [Roles y permisos](#-roles-y-permisos)
 - [Migraciones](#-migraciones)
+- [CI E2E frontend-backend](#-ci-e2e-frontend-backend)
 - [Runbook de release y recuperación](#-runbook-de-release-y-recuperación)
 - [Pruebas](#-pruebas)
 - [Colección Insomnia](#-colección-insomnia)
@@ -161,6 +162,12 @@ modifica automáticamente.
 
 La guía completa está en
 [`docs/MIGRACIONES.md`](./DentalCloudBackend/docs/MIGRACIONES.md).
+
+## 🔁 CI E2E frontend-backend
+
+El caller para ejecutar la suite E2E del frontend contra un ref explícito del
+backend está documentado en
+[`docs/CI-FRONTEND-E2E.md`](./DentalCloudBackend/docs/CI-FRONTEND-E2E.md).
 
 ## 📘 Runbook de release y recuperación
 
