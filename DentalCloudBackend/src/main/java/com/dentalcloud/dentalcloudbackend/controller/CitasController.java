@@ -9,6 +9,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CrearCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.EditarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.ReagendarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.StaffAppointmentRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
@@ -174,6 +175,15 @@ public class CitasController {
             @Valid @RequestBody CancelarCitaRequestDTO request,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(citasService.cancelarCita(id, userDetails.getUsername(), request));
+    }
+
+    @PatchMapping("/{id}/reagendar")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
+    public ResponseEntity<CitaResponseDTO> reagendar(
+            @PathVariable UUID id,
+            @Valid @RequestBody ReagendarCitaRequestDTO request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.reagendarCita(id, request, userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}/inasistencia")

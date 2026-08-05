@@ -232,6 +232,33 @@ paths:
                 items: { $ref: '#/components/schemas/AppointmentStatusEvent' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+  /api/citas/{appointmentId}/reagendar:
+    patch:
+      tags: [Appointments]
+      summary: Reagenda una cita creando una nueva vinculada
+      operationId: rescheduleAppointment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [startsAt, reason]
+              properties:
+                startsAt: { type: string, format: date-time }
+                reason: { type: string, maxLength: 2000 }
+      responses:
+        '200':
+          description: Nueva cita confirmada vinculada a la anterior
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Appointment' }
+        '409': { $ref: '#/components/responses/SlotConflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
   /api/citas/mias:
     get:
       tags: [Appointments]

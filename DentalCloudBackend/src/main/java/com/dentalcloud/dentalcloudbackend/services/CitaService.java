@@ -9,6 +9,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.CitaResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.CrearCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.EditarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.ReagendarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.StaffAppointmentRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.entity.AppointmentStatusEvent;
@@ -315,6 +316,9 @@ public class CitaService {
         if (owner && appointment.getStartsAt().isBefore(now().plusHours(24))) {
             throw new BusinessException("No se puede cancelar una cita con menos de 24 horas de anticipación");
         }
+        if (!owner && (request == null || request.getMotivoCancelacion() == null)) {
+            throw new BusinessException("El motivo es obligatorio para cancelar como personal");
+        }
         if (actor.getRole() == Rol.DOCTOR && (appointment.getDentist().getUser() == null
                 || !appointment.getDentist().getUser().getId().equals(actor.getId()))) {
             throw new BusinessException("No tienes permiso para cancelar citas de otro doctor");
@@ -411,6 +415,48 @@ public class CitaService {
             appointment.setMotivo(request.getMotivo());
         }
         return map(citasRepository.save(appointment));
+    }
+
+    @Transactional
+    public CitaResponseDTO reagendarCita(UUID id, ReagendarCitaRequestDTO request, String actorEmail) {
+        Citas previous = appointment(id);
+        User actor = userByEmail(actorEmail);
+        if (actor.getRole() != Rol.SECRETARIA && actor.getRole() != Rol.ADMIN && actor.getRole() != Rol.DOCTOR) {
+            throw new BusinessException("Solo el personal puede reagendar citas");
+        }
+        if (actor.getRole() == Rol.DOCTOR && (previous.getDentist().getUser() == null
+                || !previous.getDentist().getUser().getId().equals(actor.getId()))) {
+            throw new ResourceNotFoundException("Cita no encontrada");
+        }
+        if (previous.getStatus() != AppointmentStatus.SOLICITADA
+                && previous.getStatus() != AppointmentStatus.CONFIRMADA) {
+            throw new BusinessException("No se puede reagendar una cita en estado " + previous.getStatus());
+        }
+        Tratamiento treatment = tratamientoRepository.findByIdAndActiveTrue(previous.getTratamiento().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
+        Dentist dentist = dentistRepository.findByIdForUpdate(previous.getDentist().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
+        LocalDateTime endsAt = validateInterval(request.getStartsAt(), treatment.getDuracionMinutos());
+        if (citasRepository.existsByDentistAndStartsAtLessThanAndEndsAtGreaterThanAndStatusIn(
+                dentist, endsAt, request.getStartsAt(), BLOCKING_STATUSES)) {
+            throw new ConflictException("Ese horario ya no está disponible.");
+        }
+
+        AppointmentStatus previousStatus = previous.getStatus();
+        previous.setStatus(AppointmentStatus.CANCELADA);
+        previous.setCancellationReason("REAGENDADA: " + request.getReason().trim());
+        Citas cancelled = citasRepository.save(previous);
+        recordEvent(cancelled, previousStatus, AppointmentStatus.CANCELADA,
+                cancelled.getCancellationReason(), actorEmail);
+
+        Citas replacement = Citas.builder()
+                .user(previous.getUser()).dentist(dentist).tratamiento(treatment)
+                .treatmentPlanId(previous.getTreatmentPlanId()).startsAt(request.getStartsAt()).endsAt(endsAt)
+                .status(AppointmentStatus.CONFIRMADA).source(AppointmentSource.STAFF_CREATED)
+                .motivo(previous.getMotivo()).rescheduledFromId(previous.getId()).version(0L).build();
+        Citas saved = citasRepository.save(replacement);
+        recordEvent(saved, null, AppointmentStatus.CONFIRMADA, "REAGENDADA", actorEmail);
+        return map(saved);
     }
 
     /** Compatibilidad temporal: una eliminación histórica se conserva como cancelación. */
