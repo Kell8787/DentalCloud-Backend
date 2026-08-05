@@ -7,7 +7,9 @@ pero no crea ni modifica tablas.
 ## Esquema nuevo
 
 Con PostgreSQL vacío, iniciar el backend normalmente. Flyway ejecuta
-`V1__baseline_current_schema.sql`, después `V2__add_inventory_stock_controls.sql`, y registra ambas migraciones en
+`V1__baseline_current_schema.sql`, después `V2__add_inventory_stock_controls.sql`
+y `V3__add_clinical_plan_documents_instructions.sql`, y registra todas las
+migraciones en
 `flyway_schema_history`.
 
 ```bash
@@ -59,9 +61,18 @@ columnas agregadas de `inventory_products`, y finalmente eliminar la entrada
 V2 de `flyway_schema_history`. No se debe editar una migración ya aplicada ni
 ejecutar este rollback si ya existen datos que dependan de esos campos.
 
+## V3 — esqueleto clínico
+
+`V3__add_clinical_plan_documents_instructions.sql` crea los planes de
+tratamiento, sus pasos, los metadatos de documentos clínicos y las
+instrucciones post-cita. Las claves foráneas conservan la relación con
+pacientes, dentistas, tratamientos y citas existentes; los binarios no se
+guardan en estas tablas.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
 - `V2__add_inventory_stock_controls.sql`: controles de stock y movimientos.
-- `V3__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
+- `V3__add_clinical_plan_documents_instructions.sql`: esqueleto clínico.
+- `V4__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
 - No editar una migración que ya se ejecutó en un entorno compartido.
