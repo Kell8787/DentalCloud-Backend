@@ -5,9 +5,13 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.CreateCategoryRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryQuantityRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InventoryUpdateRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.dto.StockMovementResponseDTO;
 import com.dentalcloud.dentalcloudbackend.services.InventoryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +30,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/inventory")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('SECRETARIA', 'ADMIN')")
 public class InventoryController {
 
     private final InventoryService inventoryService;
@@ -44,9 +49,10 @@ public class InventoryController {
 
     @PostMapping
     public ResponseEntity<InventoryResponseDTO> createProduct(
-            @RequestBody @Valid InventoryUpdateRequestDTO request
+            @RequestBody @Valid InventoryUpdateRequestDTO request,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(inventoryService.createProduct(request));
+        return ResponseEntity.status(201).body(inventoryService.createProduct(request, userDetails.getUsername()));
     }
 
     @GetMapping("/{id}")
@@ -63,9 +69,10 @@ public class InventoryController {
     @GetMapping
     public ResponseEntity<List<InventoryResponseDTO>> listOrSearch(
             @RequestParam(required = false) String categoryName,
-            @RequestParam(required = false) String name
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String status
     ) {
-        return ResponseEntity.ok(inventoryService.searchProducts(categoryName, name));
+        return ResponseEntity.ok(inventoryService.searchProducts(categoryName, name, status));
     }
 
     @GetMapping("/category/{categoryId}")
@@ -84,17 +91,24 @@ public class InventoryController {
     @PutMapping("/{id}/purchase")
     public ResponseEntity<InventoryResponseDTO> purchase(
             @PathVariable UUID id,
-            @RequestBody @Valid InventoryQuantityRequestDTO request
+            @RequestBody @Valid InventoryQuantityRequestDTO request,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(inventoryService.purchase(id, request));
+        return ResponseEntity.ok(inventoryService.purchase(id, request, userDetails.getUsername()));
     }
 
     @PutMapping("/{id}/sale")
     public ResponseEntity<InventoryResponseDTO> sale(
             @PathVariable UUID id,
-            @RequestBody @Valid InventoryQuantityRequestDTO request
+            @RequestBody @Valid InventoryQuantityRequestDTO request,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(inventoryService.sale(id, request));
+        return ResponseEntity.ok(inventoryService.sale(id, request, userDetails.getUsername()));
+    }
+
+    @GetMapping("/{id}/movements")
+    public ResponseEntity<List<StockMovementResponseDTO>> movements(@PathVariable UUID id) {
+        return ResponseEntity.ok(inventoryService.movements(id));
     }
 
     @DeleteMapping("/{id}")

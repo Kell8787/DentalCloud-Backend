@@ -641,33 +641,53 @@ paths:
   /api/inventory:
     get:
       tags: [Inventory]
-      summary: Lista inventario paginado
+      summary: Lista y filtra el inventario
       operationId: listInventory
       security:
         - bearerAuth: []
       parameters:
-        - name: search
+        - name: categoryName
           in: query
           schema: { type: string }
-        - name: category
+        - name: name
           in: query
-          schema: { type: string, format: uuid }
+          schema: { type: string }
         - name: status
           in: query
           schema:
             type: string
             enum: [SIN_STOCK, BAJO, DISPONIBLE]
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/Size'
       responses:
         '200':
-          description: Página de inventario
+          description: Productos de inventario
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PageInventory'
+                type: array
+                items: { $ref: '#/components/schemas/InventoryItem' }
         '403':
           $ref: '#/components/responses/Forbidden'
+  /api/inventory/{id}/movements:
+    get:
+      tags: [Inventory]
+      summary: Lista movimientos inmutables de un producto
+      operationId: listInventoryMovements
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Movimientos de stock
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/StockMovement' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 components:
   securitySchemes:
     bearerAuth:
@@ -934,6 +954,18 @@ components:
         quantity: { type: integer, minimum: 0 }
         minimumStock: { type: integer, minimum: 0 }
         unit: { type: string }
+        status: { type: string, enum: [SIN_STOCK, BAJO, DISPONIBLE] }
+    StockMovement:
+      type: object
+      required: [id, productId, type, quantity, reason, actorId, occurredAt]
+      properties:
+        id: { type: string, format: uuid }
+        productId: { type: string, format: uuid }
+        type: { type: string, enum: [ENTRADA, SALIDA, AJUSTE] }
+        quantity: { type: integer, minimum: 1 }
+        reason: { type: string }
+        actorId: { type: string, format: uuid }
+        occurredAt: { type: string, format: date-time }
         categoryId: { type: string, format: uuid }
     PageInventory:
       $ref: '#/components/schemas/Page'

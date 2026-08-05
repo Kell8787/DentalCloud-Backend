@@ -12,9 +12,10 @@ Documentación del API bajo el prefijo **`/api/inventory`**: modelo de datos, en
 - **Reglas de negocio**:
   - **Compra** (`PUT .../purchase`): suma unidades al producto.
   - **Venta** (`PUT .../sale`): resta unidades; si la cantidad solicitada es mayor que la disponible, la API responde con error (ver más abajo).
-  - **Concurrencia**: los cambios de producto usan versionado optimista; si otro usuario actualizó el mismo producto, la operación responde con conflicto.
+  - **Concurrencia**: los movimientos bloquean la fila del producto con `PESSIMISTIC_WRITE`; nunca permiten stock negativo y se registran en una tabla inmutable.
 
-Las alertas visuales (bajo stock, crítico, etc.) se asumen en el **frontend**; el backend solo expone el campo numérico `quantity`.
+El backend deriva `status` como `SIN_STOCK`, `BAJO` o `DISPONIBLE` usando
+`quantity` y `minimumStock`; el frontend no necesita recrear esa regla.
 
 ---
 
@@ -65,6 +66,7 @@ http://localhost:8080
 | `PUT` | `/api/inventory/{id}` | Actualiza un producto completo (mismos campos que el alta). |
 | `PUT` | `/api/inventory/{id}/purchase` | Suma cantidad (compra / ingreso de stock). |
 | `PUT` | `/api/inventory/{id}/sale` | Resta cantidad (venta / salida de stock). |
+| `GET` | `/api/inventory/{id}/movements` | Lista movimientos inmutables, del más reciente al más antiguo. |
 | `DELETE` | `/api/inventory/{id}` | Baja **lógica** del producto (`deleted = true`). |
 
 ---
@@ -152,10 +154,12 @@ Mismo cuerpo que `POST /api/inventory`. El `{id}` es el UUID del producto.
 | Campo | Tipo | Reglas |
 |-------|------|--------|
 | `quantity` | entero | Obligatorio, **mínimo 1**. |
+| `reason` | string | Obligatorio, máximo 500 caracteres; queda en auditoría. |
 
 ```json
 {
-  "quantity": 10
+  "quantity": 10,
+  "reason": "Compra de insumos"
 }
 ```
 
@@ -165,7 +169,7 @@ Se **suma** `quantity` al inventario actual del producto.
 
 ### Venta / salida de stock — `PUT /api/inventory/{id}/sale`
 
-Mismo cuerpo que compra. Se **resta** la cantidad. Si `quantity` es mayor que el stock actual, se lanza un error de negocio (normalmente **400** con mensaje descriptivo vía el manejador global).
+Mismo cuerpo que compra. Se **resta** la cantidad. Si `quantity` es mayor que el stock actual, responde **409** con `INSUFFICIENT_STOCK`.
 
 ---
 
@@ -185,7 +189,8 @@ Ejemplo de cuerpo devuelto en alta, detalle, listado, actualización, compra o v
   "quantity": 60,
   "minimumStock": 10,
   "unit": "caja",
-  "version": 1
+  "version": 1,
+  "status": "DISPONIBLE"
 }
 ```
 
@@ -209,7 +214,7 @@ Los productos eliminados **no** deben aparecer en listados ni en detalle (consul
 
 - Los DTOs usan **Jakarta Bean Validation** (`@Valid`). Si falla la validación, suele responder **400** con detalle de campos (según `GlobalExceptionHandler`).
 - **Entidad no encontrada** (`EntityNotFoundException`): suele ser **404** con mensaje en el cuerpo.
-- **Argumentos ilegales** (p. ej. vender más de lo disponible): **400** con mensaje de error.
+- **Stock insuficiente**: **409** con código `INSUFFICIENT_STOCK`.
 
 ---
 

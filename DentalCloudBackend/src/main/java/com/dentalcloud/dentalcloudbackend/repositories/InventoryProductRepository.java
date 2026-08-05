@@ -2,6 +2,9 @@ package com.dentalcloud.dentalcloudbackend.repositories;
 
 import com.dentalcloud.dentalcloudbackend.domain.entity.InventoryProduct;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -10,6 +13,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface InventoryProductRepository extends JpaRepository<InventoryProduct, UUID> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from InventoryProduct p where p.id = :id and p.deleted = false")
+    Optional<InventoryProduct> findByIdAndDeletedFalseForUpdate(@org.springframework.data.repository.query.Param("id") UUID id);
     Optional<InventoryProduct> findByIdAndDeletedFalse(UUID id);
     List<InventoryProduct> findAllByDeletedFalse();
     List<InventoryProduct> findAllByCategoryIdAndDeletedFalse(UUID categoryId);

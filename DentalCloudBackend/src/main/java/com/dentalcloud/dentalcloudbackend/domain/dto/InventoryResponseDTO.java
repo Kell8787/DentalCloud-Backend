@@ -20,4 +20,5 @@ public class InventoryResponseDTO {
     private Integer minimumStock;
     private String unit;
     private Long version;
+    private String status;
 }
