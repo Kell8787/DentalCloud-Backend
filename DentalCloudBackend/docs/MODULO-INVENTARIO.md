@@ -7,10 +7,12 @@ Documentación del API bajo el prefijo **`/api/inventory`**: modelo de datos, en
 ## Qué incluye el módulo
 
 - **Categorías** (`ProductCategory`): solo `name`. Sirven para agrupar productos.
-- **Productos** (`InventoryProduct`): nombre, descripción, precio de compra, precio de venta, **cantidad en inventario**, enlace a una categoría y **eliminación lógica** (`deleted`). No existe entidad de proveedor.
+- **Productos** (`InventoryProduct`): nombre, descripción, precio de compra, precio de venta, **cantidad en inventario**, stock mínimo (`minimumStock`), unidad (`unit`), versión de concurrencia, enlace a una categoría y **eliminación lógica** (`deleted`). No existe entidad de proveedor.
+- **Movimientos** (`StockMovement`): entradas, salidas y ajustes inmutables con producto, cantidad, motivo, actor y fecha.
 - **Reglas de negocio**:
   - **Compra** (`PUT .../purchase`): suma unidades al producto.
   - **Venta** (`PUT .../sale`): resta unidades; si la cantidad solicitada es mayor que la disponible, la API responde con error (ver más abajo).
+  - **Concurrencia**: los cambios de producto usan versionado optimista; si otro usuario actualizó el mismo producto, la operación responde con conflicto.
 
 Las alertas visuales (bajo stock, crítico, etc.) se asumen en el **frontend**; el backend solo expone el campo numérico `quantity`.
 
@@ -119,6 +121,8 @@ Mismo DTO que la actualización: `InventoryUpdateRequestDTO`.
 | `salePrice` | número | Obligatorio, ≥ 0. |
 | `categoryId` | UUID | Obligatorio; debe existir una categoría con ese id. |
 | `quantity` | entero | Obligatorio, ≥ 0. |
+| `minimumStock` | entero | Opcional, ≥ 0; por defecto `0`. |
+| `unit` | string | Opcional, máximo 32 caracteres; por defecto `unidad`. |
 
 ```json
 {
@@ -127,7 +131,9 @@ Mismo DTO que la actualización: `InventoryUpdateRequestDTO`.
   "purchasePrice": 12.50,
   "salePrice": 22.00,
   "categoryId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "quantity": 50
+  "quantity": 50,
+  "minimumStock": 10,
+  "unit": "caja"
 }
 ```
 
@@ -176,7 +182,10 @@ Ejemplo de cuerpo devuelto en alta, detalle, listado, actualización, compra o v
   "salePrice": 22.0,
   "categoryId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "categoryName": "Insumos",
-  "quantity": 60
+  "quantity": 60,
+  "minimumStock": 10,
+  "unit": "caja",
+  "version": 1
 }
 ```
 

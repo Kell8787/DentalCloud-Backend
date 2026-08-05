@@ -5,9 +5,11 @@ import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.security.TraceIdFilter;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -70,6 +72,12 @@ public class GlobalExceptionHandler {
                                                                            DataIntegrityViolationException ex) {
         return error(request, HttpStatus.CONFLICT, "UNIQUE_CONSTRAINT_VIOLATION",
                 "Ya existe un registro con esos datos. Verifica los campos únicos.");
+    }
+
+    @ExceptionHandler({OptimisticLockException.class, OptimisticLockingFailureException.class})
+    public ResponseEntity<ApiErrorResponse> handleOptimisticLock(HttpServletRequest request, Exception ex) {
+        return error(request, HttpStatus.CONFLICT, "CONCURRENT_MODIFICATION",
+                "El registro cambió mientras se procesaba la operación. Recarga e inténtalo de nuevo.");
     }
 
     @ExceptionHandler(RuntimeException.class)

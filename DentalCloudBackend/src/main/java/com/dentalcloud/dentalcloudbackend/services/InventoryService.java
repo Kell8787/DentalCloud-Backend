@@ -63,6 +63,8 @@ public class InventoryService {
                 .purchasePrice(request.getPurchasePrice())
                 .salePrice(request.getSalePrice())
                 .quantity(request.getQuantity())
+                .minimumStock(request.getMinimumStock() == null ? 0 : request.getMinimumStock())
+                .unit(StringUtils.hasText(request.getUnit()) ? request.getUnit().trim() : "unidad")
                 .category(category)
                 .deleted(false)
                 .build();
@@ -115,6 +117,12 @@ public class InventoryService {
         product.setPurchasePrice(request.getPurchasePrice());
         product.setSalePrice(request.getSalePrice());
         product.setQuantity(request.getQuantity());
+        if (request.getMinimumStock() != null) {
+            product.setMinimumStock(request.getMinimumStock());
+        }
+        if (StringUtils.hasText(request.getUnit())) {
+            product.setUnit(request.getUnit().trim());
+        }
         product.setCategory(category);
 
         InventoryProduct saved = inventoryProductRepository.save(product);
@@ -163,6 +171,9 @@ public class InventoryService {
                 .categoryId(product.getCategory().getId())
                 .categoryName(product.getCategory().getName())
                 .quantity(product.getQuantity())
+                .minimumStock(product.getMinimumStock())
+                .unit(product.getUnit())
+                .version(product.getVersion())
                 .build();
     }
 }
