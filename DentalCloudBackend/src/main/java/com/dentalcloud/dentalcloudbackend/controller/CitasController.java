@@ -56,9 +56,10 @@ public class CitasController {
     @PreAuthorize("hasAnyRole('SECRETARIA', 'DOCTOR', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> crearCita(
             @Valid @RequestBody StaffAppointmentRequestDTO request,
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(citasService.crearCitaStaff(request, idempotencyKey));
+                .body(citasService.crearCitaStaff(request, idempotencyKey, userDetails.getUsername()));
     }
 
     /** Ruta histórica conservada para clientes internos durante la migración. */
@@ -128,16 +129,19 @@ public class CitasController {
 
     @PatchMapping({"/{id}/aceptar", "/{id}/aprobar"})
     @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
-    public ResponseEntity<CitaResponseDTO> aceptar(@PathVariable UUID id) {
-        return ResponseEntity.ok(citasService.aprobarCita(id));
+    public ResponseEntity<CitaResponseDTO> aceptar(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.aprobarCita(id, userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}/rechazar")
     @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
     public ResponseEntity<CitaResponseDTO> rechazar(
             @PathVariable UUID id,
-            @Valid @RequestBody RechazarCitasRequestDTO request) {
-        return ResponseEntity.ok(citasService.rechazarCita(id, request));
+            @Valid @RequestBody RechazarCitasRequestDTO request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.rechazarCita(id, request, userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}/cancelar")
@@ -151,14 +155,18 @@ public class CitasController {
 
     @PatchMapping("/{id}/inasistencia")
     @PreAuthorize("hasAnyRole('DOCTOR', 'SECRETARIA', 'ADMIN')")
-    public ResponseEntity<CitaResponseDTO> inasistencia(@PathVariable UUID id) {
-        return ResponseEntity.ok(citasService.marcarInasistencia(id));
+    public ResponseEntity<CitaResponseDTO> inasistencia(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.marcarInasistencia(id, userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}/completar")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
-    public ResponseEntity<CitaResponseDTO> completar(@PathVariable UUID id) {
-        return ResponseEntity.ok(citasService.completarCita(id));
+    public ResponseEntity<CitaResponseDTO> completar(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(citasService.completarCita(id, userDetails.getUsername()));
     }
 
     @GetMapping("/motivos-cancelacion")

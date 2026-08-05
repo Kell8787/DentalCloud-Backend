@@ -99,6 +99,13 @@ la cita ya creada; reutilizarla desde otro paciente responde conflicto. La
 creación también bloquea la fila del doctor durante la comprobación y el
 guardado para serializar reservas concurrentes.
 
+## V7 — historial de estados de cita
+
+`V7__add_appointment_status_events.sql` crea un historial inmutable de cada
+transición con estado anterior, estado nuevo, motivo, actor y timestamp. La
+creación registra el estado inicial; las acciones posteriores solo pueden
+seguir la máquina de estados del contrato.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
@@ -107,5 +114,6 @@ guardado para serializar reservas concurrentes.
 - `V4__migrate_appointments_to_typed_schedule.sql`: intervalo, estado y origen de citas.
 - `V5__add_clinic_schedule.sql`: horario semanal configurable.
 - `V6__add_appointment_idempotency.sql`: reintentos y reservas concurrentes.
-- `V7__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
+- `V7__add_appointment_status_events.sql`: historial inmutable de transiciones.
+- `V8__<descripcion>.sql`: siguiente cambio de dominio posterior al baseline.
 - No editar una migración que ya se ejecutó en un entorno compartido.

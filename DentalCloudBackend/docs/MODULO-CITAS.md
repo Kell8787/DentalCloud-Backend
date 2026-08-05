@@ -37,3 +37,7 @@ repetidas del mismo paciente se devuelve el mismo recurso; la clave no puede
 reutilizarse para otro paciente. Las reservas por doctor se serializan dentro
 de la transacción para que el mismo slot no se confirme dos veces por una
 condición de carrera.
+
+Cada creación y transición agrega un evento inmutable con actor, motivo y
+timestamps. No se revive una cita terminal ni se registra inasistencia antes
+del inicio de la franja.

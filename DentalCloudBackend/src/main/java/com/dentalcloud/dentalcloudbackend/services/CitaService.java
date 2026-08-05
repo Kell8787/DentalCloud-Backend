@@ -9,6 +9,7 @@ import com.dentalcloud.dentalcloudbackend.domain.dto.EditarCitaRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RechazarCitasRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.SlotDisponibleDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.StaffAppointmentRequestDTO;
+import com.dentalcloud.dentalcloudbackend.domain.entity.AppointmentStatusEvent;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Citas;
 import com.dentalcloud.dentalcloudbackend.domain.entity.ClinicSchedule;
 import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
@@ -25,6 +26,7 @@ import com.dentalcloud.dentalcloudbackend.exceptions.ConflictException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.CitasRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.ClinicScheduleRepository;
+import com.dentalcloud.dentalcloudbackend.repositories.AppointmentStatusEventRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.DentistRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.PatientTreatmentPlanRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.TratamientoRepository;
@@ -57,6 +59,7 @@ public class CitaService {
     private final TratamientoRepository tratamientoRepository;
     private final DentistRepository dentistRepository;
     private final PatientTreatmentPlanRepository treatmentPlanRepository;
+    private final AppointmentStatusEventRepository appointmentStatusEventRepository;
 
     @Transactional
     public CitaResponseDTO solicitarCita(AppointmentRequestDTO request, String email) {
@@ -84,7 +87,7 @@ public class CitaService {
         staffRequest.setTreatmentPlanId(plan.getId());
         staffRequest.setStartsAt(request.getStartsAt());
         staffRequest.setReason(request.getReason());
-        return create(staffRequest, AppointmentSource.PATIENT_REQUEST, idempotencyKey);
+        return create(staffRequest, AppointmentSource.PATIENT_REQUEST, idempotencyKey, email);
     }
 
     @Transactional
@@ -94,7 +97,14 @@ public class CitaService {
 
     @Transactional
     public CitaResponseDTO crearCitaStaff(StaffAppointmentRequestDTO request, String idempotencyKey) {
-        return create(request, AppointmentSource.STAFF_CREATED, idempotencyKey);
+        return create(request, AppointmentSource.STAFF_CREATED, idempotencyKey, null);
+    }
+
+    @Transactional
+    public CitaResponseDTO crearCitaStaff(StaffAppointmentRequestDTO request,
+                                          String idempotencyKey,
+                                          String actorEmail) {
+        return create(request, AppointmentSource.STAFF_CREATED, idempotencyKey, actorEmail);
     }
 
     /** Compatibilidad temporal con el payload histórico. */
@@ -106,12 +116,13 @@ public class CitaService {
         modern.setTreatmentId(request.getTratamientoId());
         modern.setStartsAt(LocalDateTime.of(request.getFecha(), request.getHoraInicio()));
         modern.setReason(request.getMotivo());
-        return crearCitaStaff(modern, null);
+        return create(modern, AppointmentSource.STAFF_CREATED, null, null);
     }
 
     private CitaResponseDTO create(StaffAppointmentRequestDTO request,
                                    AppointmentSource source,
-                                   String rawIdempotencyKey) {
+                                   String rawIdempotencyKey,
+                                   String actorEmail) {
         String idempotencyKey = normalizeIdempotencyKey(rawIdempotencyKey);
         User patient = userRepository.findById(request.getPatientId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
@@ -152,7 +163,9 @@ public class CitaService {
                 .idempotencyKey(idempotencyKey)
                 .version(0L)
                 .build();
-        return map(citasRepository.save(appointment));
+        Citas saved = citasRepository.save(appointment);
+        recordEvent(saved, null, saved.getStatus(), null, actorEmail);
+        return map(saved);
     }
 
     @Transactional
@@ -240,12 +253,23 @@ public class CitaService {
 
     @Transactional
     public CitaResponseDTO aprobarCita(UUID id) {
-        return transition(id, AppointmentStatus.CONFIRMADA, null);
+        return transition(id, AppointmentStatus.CONFIRMADA, null, null);
+    }
+
+    @Transactional
+    public CitaResponseDTO aprobarCita(UUID id, String actorEmail) {
+        return transition(id, AppointmentStatus.CONFIRMADA, null, actorEmail);
     }
 
     @Transactional
     public CitaResponseDTO rechazarCita(UUID id, RechazarCitasRequestDTO request) {
-        return transition(id, AppointmentStatus.RECHAZADA, request == null ? null : request.getMotivo());
+        return transition(id, AppointmentStatus.RECHAZADA, request == null ? null : request.getMotivo(), null);
+    }
+
+    @Transactional
+    public CitaResponseDTO rechazarCita(UUID id, RechazarCitasRequestDTO request, String actorEmail) {
+        return transition(id, AppointmentStatus.RECHAZADA,
+                request == null ? null : request.getMotivo(), actorEmail);
     }
 
     @Transactional
@@ -261,40 +285,67 @@ public class CitaService {
         if (owner && appointment.getStartsAt().isBefore(now().plusHours(24))) {
             throw new BusinessException("No se puede cancelar una cita con menos de 24 horas de anticipación");
         }
+        if (actor.getRole() == Rol.DOCTOR && (appointment.getDentist().getUser() == null
+                || !appointment.getDentist().getUser().getId().equals(actor.getId()))) {
+            throw new BusinessException("No tienes permiso para cancelar citas de otro doctor");
+        }
         if (appointment.getStatus() != AppointmentStatus.SOLICITADA
                 && appointment.getStatus() != AppointmentStatus.CONFIRMADA) {
             throw new BusinessException("No se puede cancelar una cita en estado " + appointment.getStatus());
         }
+        AppointmentStatus previous = appointment.getStatus();
         appointment.setCancellationReason(request == null || request.getMotivoCancelacion() == null
                 ? null : request.getMotivoCancelacion().name());
         appointment.setStatus(AppointmentStatus.CANCELADA);
-        return map(citasRepository.save(appointment));
+        Citas saved = citasRepository.save(appointment);
+        recordEvent(saved, previous, AppointmentStatus.CANCELADA,
+                saved.getCancellationReason(), email);
+        return map(saved);
     }
 
     @Transactional
     public CitaResponseDTO completarCita(UUID id) {
-        return transition(id, AppointmentStatus.COMPLETADA, null);
+        return transition(id, AppointmentStatus.COMPLETADA, null, null);
+    }
+
+    @Transactional
+    public CitaResponseDTO completarCita(UUID id, String actorEmail) {
+        return transition(id, AppointmentStatus.COMPLETADA, null, actorEmail);
     }
 
     @Transactional
     public CitaResponseDTO marcarInasistencia(UUID id) {
-        return transition(id, AppointmentStatus.INASISTENCIA, null);
+        return transition(id, AppointmentStatus.INASISTENCIA, null, null);
     }
 
-    private CitaResponseDTO transition(UUID id, AppointmentStatus target, String reason) {
+    @Transactional
+    public CitaResponseDTO marcarInasistencia(UUID id, String actorEmail) {
+        return transition(id, AppointmentStatus.INASISTENCIA, null, actorEmail);
+    }
+
+    private CitaResponseDTO transition(UUID id, AppointmentStatus target, String reason, String actorEmail) {
         Citas appointment = appointment(id);
-        if (!isAllowed(appointment.getStatus(), target)) {
+        if (actorEmail != null) {
+            assertDoctorOwnsAppointment(appointment, actorEmail);
+        }
+        if (!AppointmentStatusMachine.isAllowed(appointment.getStatus(), target)) {
             throw new BusinessException("La transición de " + appointment.getStatus() + " a " + target + " no está permitida");
         }
         if ((target == AppointmentStatus.RECHAZADA || target == AppointmentStatus.CANCELADA)
                 && (reason == null || reason.isBlank())) {
             throw new BusinessException("El motivo es obligatorio para esta transición");
         }
+        if (target == AppointmentStatus.INASISTENCIA && now().isBefore(appointment.getStartsAt())) {
+            throw new BusinessException("La inasistencia solo puede registrarse cuando inicia la cita");
+        }
+        AppointmentStatus previous = appointment.getStatus();
         appointment.setStatus(target);
         if (reason != null && !reason.isBlank()) {
             appointment.setCancellationReason(reason);
         }
-        return map(citasRepository.save(appointment));
+        Citas saved = citasRepository.save(appointment);
+        recordEvent(saved, previous, target, reason, actorEmail);
+        return map(saved);
     }
 
     @Transactional
@@ -345,7 +396,9 @@ public class CitaService {
         }
         appointment.setStatus(AppointmentStatus.CANCELADA);
         appointment.setCancellationReason("LEGACY_DELETE");
-        citasRepository.save(appointment);
+        Citas saved = citasRepository.save(appointment);
+        recordEvent(saved, AppointmentStatus.SOLICITADA, AppointmentStatus.CANCELADA,
+                saved.getCancellationReason(), email);
     }
 
     public CitaResponseDTO obtenerPorId(UUID id) {
@@ -452,14 +505,28 @@ public class CitaService {
         return key;
     }
 
-    private boolean isAllowed(AppointmentStatus from, AppointmentStatus to) {
-        return switch (from) {
-            case SOLICITADA -> to == AppointmentStatus.CONFIRMADA
-                    || to == AppointmentStatus.RECHAZADA || to == AppointmentStatus.CANCELADA;
-            case CONFIRMADA -> to == AppointmentStatus.CANCELADA
-                    || to == AppointmentStatus.INASISTENCIA || to == AppointmentStatus.COMPLETADA;
-            case RECHAZADA, CANCELADA, INASISTENCIA, COMPLETADA -> false;
-        };
+    private void assertDoctorOwnsAppointment(Citas appointment, String actorEmail) {
+        User actor = userByEmail(actorEmail);
+        if (actor.getRole() == Rol.DOCTOR && (appointment.getDentist().getUser() == null
+                || !appointment.getDentist().getUser().getId().equals(actor.getId()))) {
+            throw new BusinessException("No tienes permiso para gestionar citas de otro doctor");
+        }
+    }
+
+    private void recordEvent(Citas appointment,
+                             AppointmentStatus from,
+                             AppointmentStatus to,
+                             String reason,
+                             String actorEmail) {
+        UUID actorId = actorEmail == null ? null : userByEmail(actorEmail).getId();
+        appointmentStatusEventRepository.save(AppointmentStatusEvent.builder()
+                .appointmentId(appointment.getId())
+                .fromStatus(from)
+                .toStatus(to)
+                .reason(reason)
+                .actorId(actorId)
+                .occurredAt(LocalDateTime.now(BUSINESS_ZONE))
+                .build());
     }
 
     private CitaResponseDTO map(Citas appointment) {
