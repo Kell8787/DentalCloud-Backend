@@ -20,7 +20,7 @@ import java.util.UUID;
 public interface CitasRepository extends JpaRepository<Citas, UUID> {
     @Query(value = """
             select * from citas
-            where (:status is null or status = :status)
+            where (cast(:status as varchar) is null or status = cast(:status as varchar))
               and (cast(:fromAt as timestamp) is null or starts_at >= cast(:fromAt as timestamp))
               and (cast(:toAt as timestamp) is null or starts_at < cast(:toAt as timestamp))
               and (cast(:patientId as uuid) is null or user_id = cast(:patientId as uuid))
@@ -28,7 +28,7 @@ public interface CitasRepository extends JpaRepository<Citas, UUID> {
             """,
             countQuery = """
             select count(*) from citas
-            where (:status is null or status = :status)
+            where (cast(:status as varchar) is null or status = cast(:status as varchar))
               and (cast(:fromAt as timestamp) is null or starts_at >= cast(:fromAt as timestamp))
               and (cast(:toAt as timestamp) is null or starts_at < cast(:toAt as timestamp))
               and (cast(:patientId as uuid) is null or user_id = cast(:patientId as uuid))
