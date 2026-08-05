@@ -16,6 +16,7 @@ Backend REST API para la gestión de una clínica dental. Construido con **Sprin
 - [Endpoints — Citas](#-endpoints--citas)
 - [Roles y permisos](#-roles-y-permisos)
 - [Migraciones](#-migraciones)
+- [Runbook de release y recuperación](#-runbook-de-release-y-recuperación)
 - [Pruebas](#-pruebas)
 - [Colección Insomnia](#-colección-insomnia)
 
@@ -160,6 +161,12 @@ modifica automáticamente.
 
 La guía completa está en
 [`docs/MIGRACIONES.md`](./DentalCloudBackend/docs/MIGRACIONES.md).
+
+## 📘 Runbook de release y recuperación
+
+El procedimiento de despliegue, backup/restore, migraciones, rollback y alta
+segura de staff está en
+[`docs/RUNBOOK-RELEASE.md`](./DentalCloudBackend/docs/RUNBOOK-RELEASE.md).
 
 ## ✅ Pruebas
 
