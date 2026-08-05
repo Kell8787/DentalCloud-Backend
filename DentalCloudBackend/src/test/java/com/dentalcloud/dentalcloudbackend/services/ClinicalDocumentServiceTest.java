@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -93,5 +94,36 @@ class ClinicalDocumentServiceTest {
         var response = service.publish(documentId, doctor.getEmail());
 
         assertThat(response.isVisibleToPatient()).isTrue();
+    }
+
+    @Test
+    void rejectsUnsupportedMimeBeforeResolvingClinicalParent() {
+        User doctor = User.builder().id(UUID.randomUUID()).email("doctor@example.com").role(Rol.DOCTOR).build();
+        when(userRepository.findByEmail(doctor.getEmail())).thenReturn(Optional.of(doctor));
+        MockMultipartFile file = new MockMultipartFile("file", "notes.txt", "text/plain", "secret".getBytes());
+
+        assertThatThrownBy(() -> service.upload(new ClinicalDocumentUploadRequestDTO(), file, doctor.getEmail()))
+                .isInstanceOf(com.dentalcloud.dentalcloudbackend.exceptions.BusinessException.class)
+                .hasMessageContaining("tipo de archivo");
+    }
+
+    @Test
+    void hidesDocumentLinkedToAnotherDoctorsAppointment() {
+        UUID documentId = UUID.randomUUID();
+        User doctor = User.builder().id(UUID.randomUUID()).email("doctor@example.com").role(Rol.DOCTOR).build();
+        User otherDoctor = User.builder().id(UUID.randomUUID()).email("other@example.com").role(Rol.DOCTOR).build();
+        UUID appointmentId = UUID.randomUUID();
+        ClinicalDocument document = ClinicalDocument.builder().id(documentId).patientId(UUID.randomUUID())
+                .appointmentId(appointmentId).objectKey("clinical/private").documentType("XRAY")
+                .title("Radiografía").mimeType("application/pdf").sizeBytes(10L)
+                .checksum("checksum").createdBy(otherDoctor.getId()).build();
+        var appointment = com.dentalcloud.dentalcloudbackend.domain.entity.Citas.builder()
+                .id(appointmentId).dentist(Dentist.builder().id(UUID.randomUUID()).user(otherDoctor).build()).build();
+        when(userRepository.findByEmail(doctor.getEmail())).thenReturn(Optional.of(doctor));
+        when(documentRepository.findById(documentId)).thenReturn(Optional.of(document));
+        when(citasRepository.findById(appointmentId)).thenReturn(Optional.of(appointment));
+
+        assertThatThrownBy(() -> service.get(documentId, doctor.getEmail()))
+                .isInstanceOf(com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException.class);
     }
 }
