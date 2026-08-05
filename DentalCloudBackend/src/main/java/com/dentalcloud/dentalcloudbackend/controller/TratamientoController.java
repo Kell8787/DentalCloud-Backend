@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 
@@ -21,8 +24,14 @@ public class TratamientoController {
     private final TratamientoService tratamientoService;
 
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TratamientoResponseDTO>> listarTratamientos(
-            @RequestParam(defaultValue = "false") boolean includeInactive) {
+            @RequestParam(defaultValue = "false") boolean includeInactive,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        if (includeInactive && userDetails.getAuthorities().stream()
+                .noneMatch(authority -> authority.getAuthority().matches("ROLE_(DOCTOR|SECRETARIA|ADMIN)"))) {
+            throw new AccessDeniedException("Solo el personal puede consultar tratamientos inactivos");
+        }
         return ResponseEntity.ok(tratamientoService.listarTratamientos(includeInactive));
     }
 

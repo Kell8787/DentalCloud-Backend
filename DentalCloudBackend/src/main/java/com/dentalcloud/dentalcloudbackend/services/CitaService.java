@@ -21,6 +21,7 @@ import com.dentalcloud.dentalcloudbackend.domain.enums.AppointmentStatus;
 import com.dentalcloud.dentalcloudbackend.domain.enums.EstadoCita;
 import com.dentalcloud.dentalcloudbackend.domain.enums.MotivoCancelacion;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
+import com.dentalcloud.dentalcloudbackend.domain.enums.TreatmentPlanStatus;
 import com.dentalcloud.dentalcloudbackend.exceptions.BusinessException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ConflictException;
 import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
@@ -142,6 +143,7 @@ public class CitaService {
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
         Tratamiento treatment = tratamientoRepository.findByIdAndActiveTrue(request.getTreatmentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Tratamiento no encontrado"));
+        validateTreatmentPlan(request, patient, dentist, treatment);
 
         LocalDateTime endsAt = validateInterval(request.getStartsAt(), treatment.getDuracionMinutos());
         if (citasRepository.existsByDentistAndStartsAtLessThanAndEndsAtGreaterThanAndStatusIn(
@@ -166,6 +168,26 @@ public class CitaService {
         Citas saved = citasRepository.save(appointment);
         recordEvent(saved, null, saved.getStatus(), null, actorEmail);
         return map(saved);
+    }
+
+    private void validateTreatmentPlan(StaffAppointmentRequestDTO request,
+                                       User patient,
+                                       Dentist dentist,
+                                       Tratamiento treatment) {
+        if (request.getTreatmentPlanId() == null) {
+            return;
+        }
+        PatientTreatmentPlan plan = treatmentPlanRepository.findById(request.getTreatmentPlanId())
+                .orElseThrow(() -> new ResourceNotFoundException("Plan de tratamiento no encontrado"));
+        if (!plan.getPatientId().equals(patient.getId())
+                || !plan.getDentistId().equals(dentist.getId())
+                || !plan.getTreatmentId().equals(treatment.getId())) {
+            throw new BusinessException("La cita no coincide con el paciente, doctor o tratamiento del plan");
+        }
+        if (EnumSet.of(TreatmentPlanStatus.PAUSED, TreatmentPlanStatus.COMPLETED,
+                TreatmentPlanStatus.CANCELLED).contains(plan.getStatus())) {
+            throw new BusinessException("El plan no admite nuevas citas");
+        }
     }
 
     @Transactional
@@ -223,6 +245,10 @@ public class CitaService {
             }
             if (treatmentId != null && !treatmentId.equals(plan.getTreatmentId())) {
                 throw new BusinessException("El tratamiento no coincide con el plan");
+            }
+            if (EnumSet.of(TreatmentPlanStatus.PAUSED, TreatmentPlanStatus.COMPLETED,
+                    TreatmentPlanStatus.CANCELLED).contains(plan.getStatus())) {
+                throw new BusinessException("El plan no admite nuevas citas");
             }
             treatmentId = plan.getTreatmentId();
         }
