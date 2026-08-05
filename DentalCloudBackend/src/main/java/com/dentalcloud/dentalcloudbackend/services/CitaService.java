@@ -38,7 +38,6 @@ import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -574,8 +573,8 @@ public class CitaService {
         }
         LocalDateTime fromAt = from == null ? null : from.atStartOfDay();
         LocalDateTime toAt = to == null ? null : to.plusDays(1).atStartOfDay();
-        var result = citasRepository.search(status, fromAt, toAt, patientId,
-                PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "startsAt")));
+        var result = citasRepository.search(status == null ? null : status.name(), fromAt, toAt, patientId,
+                PageRequest.of(page, size));
         return AppointmentPageResponseDTO.builder()
                 .items(result.getContent().stream().map(this::map).toList())
                 .page(result.getNumber())

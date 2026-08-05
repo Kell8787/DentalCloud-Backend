@@ -36,7 +36,7 @@ class CitaServicePaginationTest {
 
     @Test
     void returnsStablePaginationEnvelope() {
-        when(citasRepository.search(eq(AppointmentStatus.CONFIRMADA),
+        when(citasRepository.search(eq(AppointmentStatus.CONFIRMADA.name()),
                 eq(LocalDate.of(2026, 8, 1).atStartOfDay()),
                 eq(LocalDate.of(2026, 8, 8).plusDays(1).atStartOfDay()), eq(null), any()))
                 .thenReturn(new PageImpl<>(List.of(), org.springframework.data.domain.PageRequest.of(1, 20), 0));

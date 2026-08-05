@@ -18,15 +18,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CitasRepository extends JpaRepository<Citas, UUID> {
-    @Query("""
-            select c from Citas c
-            where (:status is null or c.status = :status)
-              and (:fromAt is null or c.startsAt >= :fromAt)
-              and (:toAt is null or c.startsAt < :toAt)
-              and (:patientId is null or c.user.id = :patientId)
-            order by c.startsAt asc
-            """)
-    Page<Citas> search(@Param("status") AppointmentStatus status,
+    @Query(value = """
+            select * from citas
+            where (:status is null or status = :status)
+              and (cast(:fromAt as timestamp) is null or starts_at >= cast(:fromAt as timestamp))
+              and (cast(:toAt as timestamp) is null or starts_at < cast(:toAt as timestamp))
+              and (cast(:patientId as uuid) is null or user_id = cast(:patientId as uuid))
+            order by starts_at asc
+            """,
+            countQuery = """
+            select count(*) from citas
+            where (:status is null or status = :status)
+              and (cast(:fromAt as timestamp) is null or starts_at >= cast(:fromAt as timestamp))
+              and (cast(:toAt as timestamp) is null or starts_at < cast(:toAt as timestamp))
+              and (cast(:patientId as uuid) is null or user_id = cast(:patientId as uuid))
+            """,
+            nativeQuery = true)
+    Page<Citas> search(@Param("status") String status,
                        @Param("fromAt") LocalDateTime fromAt,
                        @Param("toAt") LocalDateTime toAt,
                        @Param("patientId") UUID patientId,
