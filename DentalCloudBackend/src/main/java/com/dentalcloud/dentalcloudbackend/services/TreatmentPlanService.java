@@ -48,8 +48,9 @@ public class TreatmentPlanService {
                                                    CreateTreatmentPlanRequestDTO request,
                                                    String actorEmail) {
         User actor = actor(actorEmail);
-        assertClinicalActor(actor);
+        assertPlanManager(actor);
         User patient = userRepository.findById(patientId)
+                .filter(user -> user.getRole() == Rol.CUSTOMER)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente no encontrado"));
         Dentist dentist = dentistRepository.findById(request.getDentistId())
                 .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado"));
@@ -79,7 +80,7 @@ public class TreatmentPlanService {
     @Transactional
     public List<PatientTreatmentPlanResponseDTO> listForPatient(UUID patientId, String email) {
         User actor = actor(email);
-        assertClinicalActor(actor);
+        assertPlanManager(actor);
         List<PatientTreatmentPlan> plans = planRepository.findByPatientIdOrderByCreatedAtDesc(patientId);
         if (actor.getRole() == Rol.DOCTOR) {
             UUID dentistId = dentistRepository.findByUser(actor)
@@ -139,7 +140,7 @@ public class TreatmentPlanService {
                                             CreateTreatmentStepRequestDTO request,
                                             String actorEmail) {
         PatientTreatmentPlan plan = plan(planId);
-        assertCanWrite(plan, actor(actorEmail));
+        assertCanWriteClinicalStep(plan, actor(actorEmail));
         if (stepRepository.existsByPlanIdAndPosition(planId, request.getPosition())) {
             throw new ConflictException("TREATMENT_STEP_POSITION_TAKEN",
                     "Ya existe un paso con esa posición en el plan.");
@@ -161,7 +162,7 @@ public class TreatmentPlanService {
                                                String actorEmail) {
         PatientTreatmentPlan plan = plan(planId);
         User actor = actor(actorEmail);
-        assertCanWrite(plan, actor);
+        assertCanWriteClinicalStep(plan, actor);
         if (plan.getStatus() == TreatmentPlanStatus.COMPLETED
                 || plan.getStatus() == TreatmentPlanStatus.CANCELLED) {
             throw new BusinessException("No se pueden modificar pasos de un plan cerrado");
@@ -200,6 +201,12 @@ public class TreatmentPlanService {
         }
     }
 
+    private void assertPlanManager(User actor) {
+        if (actor.getRole() != Rol.DOCTOR && actor.getRole() != Rol.ADMIN) {
+            throw new BusinessException("Solo el doctor o administrador puede gestionar planes de tratamiento");
+        }
+    }
+
     private void assertDoctorOwnsDentist(User actor, Dentist dentist) {
         if (actor.getRole() == Rol.DOCTOR) {
             if (dentist.getUser() == null || !dentist.getUser().getId().equals(actor.getId())) {
@@ -225,6 +232,15 @@ public class TreatmentPlanService {
     }
 
     private void assertCanWrite(PatientTreatmentPlan plan, User actor) {
+        assertPlanManager(actor);
+        if (actor.getRole() == Rol.ADMIN) {
+            return;
+        }
+        assertDoctorOwnsDentist(actor, dentistRepository.findById(plan.getDentistId())
+                .orElseThrow(() -> new ResourceNotFoundException("Dentista no encontrado")));
+    }
+
+    private void assertCanWriteClinicalStep(PatientTreatmentPlan plan, User actor) {
         assertClinicalActor(actor);
         if (actor.getRole() == Rol.ADMIN) {
             return;

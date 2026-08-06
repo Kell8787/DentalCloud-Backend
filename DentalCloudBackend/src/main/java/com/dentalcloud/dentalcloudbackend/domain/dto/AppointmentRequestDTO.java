@@ -11,7 +11,16 @@ import java.util.UUID;
 
 @Data
 public class AppointmentRequestDTO {
-    @NotNull(message = "El plan de tratamiento es requerido")
+    @NotNull(message = "El tratamiento es requerido")
+    private UUID treatmentId;
+
+    @NotNull(message = "El doctor es requerido")
+    private UUID doctorId;
+
+    /**
+     * Optional link used when the patient is continuing an existing plan.
+     * A first appointment must not require a clinical plan to exist first.
+     */
     private UUID treatmentPlanId;
 
     @NotNull(message = "El inicio de la cita es requerido")

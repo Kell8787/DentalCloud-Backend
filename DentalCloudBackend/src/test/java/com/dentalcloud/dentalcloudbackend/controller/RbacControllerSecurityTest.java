@@ -3,6 +3,7 @@ package com.dentalcloud.dentalcloudbackend.controller;
 import com.dentalcloud.dentalcloudbackend.domain.dto.InformacionMedicaDTO;
 import com.dentalcloud.dentalcloudbackend.services.InventoryService;
 import com.dentalcloud.dentalcloudbackend.services.PatientService;
+import com.dentalcloud.dentalcloudbackend.services.TreatmentPlanService;
 import com.dentalcloud.dentalcloudbackend.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +27,12 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
-        controllers = {InventoryController.class, PatientController.class, UserController.class},
+        controllers = {InventoryController.class, PatientController.class, UserController.class, TreatmentPlanController.class},
         excludeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
                 classes = {com.dentalcloud.dentalcloudbackend.security.JwtAuthenticationFilter.class,
@@ -104,6 +106,40 @@ class RbacControllerSecurityTest {
                 .andExpect(jsonPath("$.code", is("ACCESS_DENIED")));
     }
 
+    @Test
+    @WithMockUser(roles = "DOCTOR")
+    void doctorCanManagePatientTreatmentPlans() throws Exception {
+        mockMvc.perform(get("/api/patients/{patientId}/treatment-plans", UUID.randomUUID()))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/patients/{patientId}/treatment-plans", UUID.randomUUID())
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"treatmentId\":\"" + UUID.randomUUID() + "\",\"dentistId\":\"" + UUID.randomUUID() + "\"}"))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @WithMockUser(roles = "SECRETARIA")
+    void secretariaCannotManagePatientTreatmentPlans() throws Exception {
+        mockMvc.perform(get("/api/patients/{patientId}/treatment-plans", UUID.randomUUID()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code", is("ACCESS_DENIED")));
+
+        mockMvc.perform(post("/api/patients/{patientId}/treatment-plans", UUID.randomUUID())
+                        .contentType(APPLICATION_JSON)
+                        .content("{\"treatmentId\":\"" + UUID.randomUUID() + "\",\"dentistId\":\"" + UUID.randomUUID() + "\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code", is("ACCESS_DENIED")));
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void customerCannotManageAnotherPatientsTreatmentPlans() throws Exception {
+        mockMvc.perform(get("/api/patients/{patientId}/treatment-plans", UUID.randomUUID()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code", is("ACCESS_DENIED")));
+    }
+
     @TestConfiguration
     @EnableMethodSecurity
     static class TestSecurityConfiguration {
@@ -138,6 +174,11 @@ class RbacControllerSecurityTest {
         @Bean
         UserService userService() {
             return new UserService(null, null);
+        }
+
+        @Bean
+        TreatmentPlanService treatmentPlanService() {
+            return org.mockito.Mockito.mock(TreatmentPlanService.class);
         }
 
         @Bean

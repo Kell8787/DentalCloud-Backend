@@ -143,8 +143,25 @@ class PostgreSqlFlywayIntegrationTest {
                 """,
                 Integer.class
         );
+        Integer defaultTreatmentCount = jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from tratamientos
+                where lower(nombre) in (
+                    'blanqueamiento dental',
+                    'limpieza dental',
+                    'extracciones',
+                    'ortodoncia',
+                    'radiografía',
+                    'cirugía de cordales',
+                    'rellenos',
+                    'diagnósticos generales'
+                )
+                """,
+                Integer.class
+        );
 
-        assertThat(appliedMigrations).isEqualTo(13);
+        assertThat(appliedMigrations).isEqualTo(14);
         assertThat(seededDoctors).isGreaterThanOrEqualTo(2);
         assertThat(inventoryColumns).isEqualTo(3);
         assertThat(stockMovementTables).isEqualTo(1);
@@ -155,6 +172,7 @@ class PostgreSqlFlywayIntegrationTest {
         assertThat(planVersionColumns).isEqualTo(2);
         assertThat(treatmentActiveColumns).isEqualTo(1);
         assertThat(userActivationColumns).isEqualTo(1);
+        assertThat(defaultTreatmentCount).isEqualTo(8);
 
         UUID categoryId = UUID.fromString("33333333-3333-3333-3333-333333333333");
         UUID productId = UUID.fromString("44444444-4444-4444-4444-444444444444");

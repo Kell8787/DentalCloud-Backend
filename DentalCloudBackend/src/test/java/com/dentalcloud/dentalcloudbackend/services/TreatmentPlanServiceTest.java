@@ -2,7 +2,10 @@ package com.dentalcloud.dentalcloudbackend.services;
 
 import com.dentalcloud.dentalcloudbackend.domain.entity.PatientTreatmentPlan;
 import com.dentalcloud.dentalcloudbackend.domain.entity.TreatmentStep;
+import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
+import com.dentalcloud.dentalcloudbackend.domain.entity.Tratamiento;
 import com.dentalcloud.dentalcloudbackend.domain.entity.User;
+import com.dentalcloud.dentalcloudbackend.domain.dto.CreateTreatmentPlanRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
 import com.dentalcloud.dentalcloudbackend.domain.enums.TreatmentPlanStatus;
 import com.dentalcloud.dentalcloudbackend.domain.dto.UpdateTreatmentStepRequestDTO;
@@ -21,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -40,6 +44,54 @@ class TreatmentPlanServiceTest {
     private TratamientoRepository tratamientoRepository;
     @InjectMocks
     private TreatmentPlanService service;
+
+    @Test
+    void doctorCanCreateAndActivateAPlanForAPatient() {
+        UUID patientId = UUID.randomUUID();
+        UUID treatmentId = UUID.randomUUID();
+        UUID dentistId = UUID.randomUUID();
+        User doctor = User.builder().id(UUID.randomUUID()).email("doctor@example.com").role(Rol.DOCTOR).build();
+        User patient = User.builder().id(patientId).email("patient@example.com").role(Rol.CUSTOMER).build();
+        Dentist dentist = Dentist.builder().id(dentistId).Name("Dr. Demo").user(doctor).build();
+        Tratamiento treatment = Tratamiento.builder().id(treatmentId).nombre("Limpieza").duracionMinutos(30)
+                .precio(BigDecimal.TEN).active(true).build();
+
+        when(userRepository.findByEmail(doctor.getEmail())).thenReturn(Optional.of(doctor));
+        when(userRepository.findById(patientId)).thenReturn(Optional.of(patient));
+        when(dentistRepository.findById(dentistId)).thenReturn(Optional.of(dentist));
+        when(tratamientoRepository.findByIdAndActiveTrue(treatmentId)).thenReturn(Optional.of(treatment));
+        when(planRepository.save(org.mockito.ArgumentMatchers.any(PatientTreatmentPlan.class)))
+                .thenAnswer(invocation -> {
+                    PatientTreatmentPlan saved = invocation.getArgument(0);
+                    saved.setId(UUID.randomUUID());
+                    return saved;
+                });
+        when(tratamientoRepository.findById(treatmentId)).thenReturn(Optional.of(treatment));
+        when(stepRepository.findByPlanIdOrderByPositionAsc(org.mockito.ArgumentMatchers.any(UUID.class)))
+                .thenReturn(List.of());
+
+        CreateTreatmentPlanRequestDTO request = new CreateTreatmentPlanRequestDTO();
+        request.setTreatmentId(treatmentId);
+        request.setDentistId(dentistId);
+
+        var created = service.create(patientId, request, doctor.getEmail());
+
+        assertThat(created.getStatus()).isEqualTo(TreatmentPlanStatus.PLANNED);
+        assertThat(created.getPatientId()).isEqualTo(patientId);
+        assertThat(created.getDentistId()).isEqualTo(dentistId);
+
+        when(planRepository.findById(created.getId())).thenReturn(Optional.of(
+                PatientTreatmentPlan.builder().id(created.getId()).patientId(patientId).treatmentId(treatmentId)
+                        .dentistId(dentistId).status(TreatmentPlanStatus.PLANNED).version(0L).build()));
+        when(planRepository.save(org.mockito.ArgumentMatchers.any(PatientTreatmentPlan.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var activation = new com.dentalcloud.dentalcloudbackend.domain.dto.UpdateTreatmentPlanRequestDTO();
+        activation.setStatus(TreatmentPlanStatus.ACTIVE);
+        var activated = service.update(created.getId(), activation, doctor.getEmail());
+
+        assertThat(activated.getStatus()).isEqualTo(TreatmentPlanStatus.ACTIVE);
+    }
 
     @Test
     void calculatesProgressFromCompletedStepsOnly() {
@@ -118,5 +170,33 @@ class TreatmentPlanServiceTest {
                 new UpdateTreatmentStepRequestDTO(), admin.getEmail()))
                 .isInstanceOf(com.dentalcloud.dentalcloudbackend.exceptions.BusinessException.class)
                 .hasMessageContaining("plan cerrado");
+    }
+
+    @Test
+    void secretariaCannotEditClinicalSteps() {
+        UUID planId = UUID.randomUUID();
+        User secretary = User.builder().id(UUID.randomUUID()).email("secretaria@example.com")
+                .role(Rol.SECRETARIA).build();
+        PatientTreatmentPlan plan = PatientTreatmentPlan.builder().id(planId).patientId(UUID.randomUUID())
+                .dentistId(UUID.randomUUID()).status(TreatmentPlanStatus.ACTIVE).version(0L).build();
+        when(planRepository.findById(planId)).thenReturn(Optional.of(plan));
+        when(userRepository.findByEmail(secretary.getEmail())).thenReturn(Optional.of(secretary));
+
+        assertThatThrownBy(() -> service.addStep(planId,
+                new com.dentalcloud.dentalcloudbackend.domain.dto.CreateTreatmentStepRequestDTO(), secretary.getEmail()))
+                .isInstanceOf(com.dentalcloud.dentalcloudbackend.exceptions.BusinessException.class)
+                .hasMessageContaining("doctor o administrador");
+    }
+
+    @Test
+    void secretariaCannotCreateAPlanForAPatient() {
+        UUID patientId = UUID.randomUUID();
+        User secretary = User.builder().id(UUID.randomUUID()).email("secretaria@example.com")
+                .role(Rol.SECRETARIA).build();
+        when(userRepository.findByEmail(secretary.getEmail())).thenReturn(Optional.of(secretary));
+
+        assertThatThrownBy(() -> service.create(patientId, new CreateTreatmentPlanRequestDTO(), secretary.getEmail()))
+                .isInstanceOf(com.dentalcloud.dentalcloudbackend.exceptions.BusinessException.class)
+                .hasMessageContaining("doctor o administrador");
     }
 }

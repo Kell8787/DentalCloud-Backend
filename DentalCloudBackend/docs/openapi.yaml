@@ -418,9 +418,10 @@ paths:
             schema:
               $ref: '#/components/schemas/AppointmentRequest'
             example:
-              treatmentPlanId: 6d4c2cc6-9d74-4c26-a2ed-bd39c67e7e31
+              treatmentId: 6d4c2cc6-9d74-4c26-a2ed-bd39c67e7e31
+              doctorId: 88d4c2dd-1c0c-4c17-a6c5-fb92d0b0b0c1
               startsAt: '2026-08-12T09:00:00-06:00'
-              reason: Control de seguimiento
+              reason: Primera valoración y limpieza
       responses:
         '201':
           description: Solicitud creada en estado SOLICITADA
@@ -666,6 +667,63 @@ paths:
                   $ref: '#/components/schemas/TreatmentPlan'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /api/patients/{patientId}/treatment-plans:
+    get:
+      tags: [Clinical]
+      summary: Lista los planes de un paciente para personal autorizado
+      description: Disponible para doctores y administradores. Secretaría gestiona la agenda, no decide ni modifica planes clínicos.
+      operationId: listPatientTreatmentPlans
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Planes del paciente
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/TreatmentPlan' }
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Clinical]
+      summary: Registra un plan para un paciente
+      description: Disponible para doctores y administradores. El plan se crea en estado PLANNED y debe activarse en una operación posterior, normalmente después de valorar una solicitud del paciente.
+      operationId: createPatientTreatmentPlan
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [treatmentId, dentistId]
+              properties:
+                treatmentId: { type: string, format: uuid }
+                dentistId: { type: string, format: uuid }
+                startedAt: { type: string, format: date-time, nullable: true }
+                expectedEndAt: { type: string, format: date-time, nullable: true }
+      responses:
+        '201':
+          description: Plan registrado en estado PLANNED
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TreatmentPlan' }
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/treatment-plans/{planId}:
     get:
       tags: [Clinical]
@@ -684,6 +742,36 @@ paths:
                 $ref: '#/components/schemas/TreatmentPlan'
         '404':
           $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Clinical]
+      summary: Activa o actualiza el estado operativo de un plan
+      description: Disponible para doctores y administradores. La edición de pasos clínicos permanece restringida a doctor y administrador.
+      operationId: updateTreatmentPlan
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status: { type: string, enum: [ACTIVE, PAUSED, COMPLETED, CANCELLED] }
+                startedAt: { type: string, format: date-time, nullable: true }
+                expectedEndAt: { type: string, format: date-time, nullable: true }
+                cancellationReason: { type: string, maxLength: 2000 }
+      responses:
+        '200':
+          description: Plan actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TreatmentPlan' }
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
   /api/patients/me/aftercare:
     get:
       tags: [Clinical]
@@ -1100,9 +1188,12 @@ components:
         occurredAt: { type: string, format: date-time }
     AppointmentRequest:
       type: object
-      required: [treatmentPlanId, startsAt, reason]
+      description: El paciente elige el tratamiento y la franja. treatmentPlanId solo se envía para continuar un plan existente.
+      required: [treatmentId, doctorId, startsAt, reason]
       properties:
-        treatmentPlanId: { type: string, format: uuid }
+        treatmentId: { type: string, format: uuid }
+        doctorId: { type: string, format: uuid }
+        treatmentPlanId: { type: string, format: uuid, nullable: true }
         startsAt: { type: string, format: date-time }
         reason: { type: string, minLength: 1, maxLength: 2000 }
     StaffAppointmentRequest:
@@ -1134,22 +1225,27 @@ components:
       type: object
       properties:
         id: { type: string, format: uuid }
-        name: { type: string }
-        description: { type: string }
-        durationMinutes: { type: integer, minimum: 1 }
+        nombre: { type: string }
+        descripcion: { type: string }
+        duracionMinutos: { type: integer, minimum: 1 }
         price: { type: number, format: decimal }
         active: { type: boolean }
     TreatmentPlan:
       type: object
-      required: [id, patientId, treatmentId, doctorId, status, progress]
+      required: [id, patientId, treatmentId, dentistId, status, progress]
       properties:
         id: { type: string, format: uuid }
         patientId: { type: string, format: uuid }
         treatmentId: { type: string, format: uuid }
-        doctorId: { type: string, format: uuid }
+        treatmentName: { type: string }
+        dentistId: { type: string, format: uuid }
+        dentistName: { type: string }
         status:
           type: string
           enum: [PLANNED, ACTIVE, PAUSED, COMPLETED, CANCELLED]
+        startedAt: { type: string, format: date-time, nullable: true }
+        expectedEndAt: { type: string, format: date-time, nullable: true }
+        cancellationReason: { type: string, nullable: true }
         progress:
           type: object
           required: [completedSteps, totalSteps, percentage]

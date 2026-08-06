@@ -75,22 +75,11 @@ public class CitaService {
     @Transactional
     public CitaResponseDTO solicitarCita(AppointmentRequestDTO request, String email, String idempotencyKey) {
         User patient = userByEmail(email);
-        PatientTreatmentPlan plan = treatmentPlanRepository.findById(request.getTreatmentPlanId())
-                .orElseThrow(() -> new ResourceNotFoundException("Plan de tratamiento no encontrado"));
-        if (!plan.getPatientId().equals(patient.getId())) {
-            throw new ResourceNotFoundException("Plan de tratamiento no encontrado");
-        }
-        if (plan.getStatus() == com.dentalcloud.dentalcloudbackend.domain.enums.TreatmentPlanStatus.PAUSED
-                || plan.getStatus() == com.dentalcloud.dentalcloudbackend.domain.enums.TreatmentPlanStatus.COMPLETED
-                || plan.getStatus() == com.dentalcloud.dentalcloudbackend.domain.enums.TreatmentPlanStatus.CANCELLED) {
-            throw new BusinessException("El plan no admite nuevas citas");
-        }
-
         StaffAppointmentRequestDTO staffRequest = new StaffAppointmentRequestDTO();
         staffRequest.setPatientId(patient.getId());
-        staffRequest.setDoctorId(plan.getDentistId());
-        staffRequest.setTreatmentId(plan.getTreatmentId());
-        staffRequest.setTreatmentPlanId(plan.getId());
+        staffRequest.setDoctorId(request.getDoctorId());
+        staffRequest.setTreatmentId(request.getTreatmentId());
+        staffRequest.setTreatmentPlanId(request.getTreatmentPlanId());
         staffRequest.setStartsAt(request.getStartsAt());
         staffRequest.setReason(request.getReason());
         return create(staffRequest, AppointmentSource.PATIENT_REQUEST, idempotencyKey, email);
