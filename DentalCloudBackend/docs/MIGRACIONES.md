@@ -140,6 +140,14 @@ las agendas diarias generales. Las consultas de agenda cargan además paciente,
 dentista y tratamiento en una lectura agrupada para evitar N+1 críticos al
 mapear respuestas.
 
+## V14 — catálogo inicial de tratamientos
+
+`V14__seed_default_treatments.sql` agrega de forma idempotente los tratamientos
+base del portal: blanqueamiento dental, limpieza dental, extracciones,
+ortodoncia, radiografía, cirugía de cordales, rellenos y diagnósticos generales.
+No modifica ni elimina tratamientos existentes; las tarifas quedan en `0.00`
+hasta que la clínica defina sus valores.
+
 ## Convención
 
 - `V1__baseline_current_schema.sql`: esquema legado inicial.
@@ -152,4 +160,5 @@ mapear respuestas.
 - `V8__add_treatment_plan_versioning.sql`: control optimista de planes y pasos.
 - `V9__add_treatment_active_flag.sql`: elegibilidad del catálogo clínico.
 - `V10__add_user_activation_flag.sql`: activación administrativa de pacientes.
+- `V14__seed_default_treatments.sql`: catálogo inicial de tratamientos.
 - No editar una migración que ya se ejecutó en un entorno compartido.

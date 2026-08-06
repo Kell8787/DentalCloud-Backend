@@ -1,0 +1,23 @@
+name: Frontend integration E2E
+
+on:
+  workflow_dispatch:
+    inputs:
+      frontend_ref:
+        description: "Frontend branch, tag or commit containing the E2E workflow"
+        required: true
+        default: "ci/F5-X-01-e2e"
+        type: string
+      backend_ref:
+        description: "Backend branch, tag or commit containing the e2e fixture"
+        required: true
+        default: "ci/F5-X-01-cross-repo"
+        type: string
+
+jobs:
+  e2e:
+    name: Run frontend E2E against this backend ref
+    uses: Ose15/DentalCloud-frontend/.github/workflows/e2e-integration.yml@ci/F5-X-01-e2e
+    with:
+      frontend_ref: ${{ inputs.frontend_ref }}
+      backend_ref: ${{ inputs.backend_ref }}

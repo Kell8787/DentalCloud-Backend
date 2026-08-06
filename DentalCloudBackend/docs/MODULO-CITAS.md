@@ -25,7 +25,9 @@ esquema anterior no registraba el origen, los registros migrados se marcan
 - `POST /api/citas`: Secretaría, doctor o administrador; recibe el paciente y
   doctor explícitos.
 - `GET /api/citas/disponibilidad`: devuelve slots con doctor, `startsAt` y
-  `endsAt`.
+  `endsAt`. Los inicios se alinean a intervalos de 30 minutos, la duración
+  depende del tratamiento y las citas solicitadas o confirmadas que se solapan
+  no se devuelven como disponibles.
 - `GET /api/citas/mias`: devuelve las citas del paciente autenticado.
 
 Las rutas históricas permanecen como aliases durante la migración, pero las

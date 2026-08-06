@@ -14,7 +14,9 @@ public class PatientTreatmentPlanResponseDTO {
     private UUID id;
     private UUID patientId;
     private UUID treatmentId;
+    private String treatmentName;
     private UUID dentistId;
+    private String dentistName;
     private TreatmentPlanStatus status;
     private Instant startedAt;
     private Instant expectedEndAt;

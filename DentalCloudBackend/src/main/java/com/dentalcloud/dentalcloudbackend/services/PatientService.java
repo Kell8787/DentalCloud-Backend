@@ -192,6 +192,7 @@ public class PatientService {
             String q = search.toLowerCase();
             pacientes = pacientes.stream()
                     .filter(u -> (u.getFirstName() + " " + u.getLastName()).toLowerCase().contains(q)
+                            || (u.getEmail() != null && u.getEmail().toLowerCase().contains(q))
                             || (u.getDui() != null && u.getDui().contains(q))
                             || (u.getPhoneNumber() != null && u.getPhoneNumber().contains(q)))
                 .toList();
