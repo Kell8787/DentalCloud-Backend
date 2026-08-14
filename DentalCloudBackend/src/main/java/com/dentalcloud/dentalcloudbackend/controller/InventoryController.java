@@ -42,6 +42,7 @@ public class InventoryController {
     }
 
     @PostMapping("/category")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryResponseDTO> createCategory(
             @RequestBody @Valid CreateCategoryRequestDTO request
     ) {
