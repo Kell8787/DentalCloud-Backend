@@ -35,7 +35,7 @@ public class SecretaryDashboardService {
                 .requestedAppointments(count(AppointmentStatus.SOLICITADA, from, to))
                 .confirmedAppointments(count(AppointmentStatus.CONFIRMADA, from, to))
                 .cancelledAppointments(count(AppointmentStatus.CANCELADA, from, to))
-                .todayAppointments(citaService.obtenerTodasLasCitas(LocalDate.now(BUSINESS_ZONE), null))
+                .todayAppointments(citaService.obtenerCitasPorRango(from, to))
                 .lowStockProducts(inventory)
                 .build();
     }

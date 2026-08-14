@@ -542,6 +542,11 @@ public class CitaService {
                 .stream().map(this::map).toList();
     }
 
+    public List<CitaResponseDTO> obtenerCitasPorRango(LocalDateTime from, LocalDateTime to) {
+        return citasRepository.findByStartsAtGreaterThanEqualAndStartsAtLessThanOrderByStartsAtAsc(from, to)
+                .stream().map(this::map).toList();
+    }
+
     public List<CitaResponseDTO> obtenerTodasLasCitas(LocalDate date, EstadoCita legacyStatus) {
         List<Citas> appointments;
         if (date == null) {

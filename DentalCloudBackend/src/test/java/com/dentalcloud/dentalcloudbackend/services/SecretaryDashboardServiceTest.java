@@ -29,7 +29,7 @@ class SecretaryDashboardServiceTest {
         when(citasRepository.countByStartsAtGreaterThanEqualAndStartsAtLessThan(any(), any())).thenReturn(8L);
         when(citasRepository.countByStatusAndStartsAtGreaterThanEqualAndStartsAtLessThan(
                 any(), any(), any())).thenReturn(2L);
-        when(citaService.obtenerTodasLasCitas(any(), eq(null))).thenReturn(List.of());
+        when(citaService.obtenerCitasPorRango(any(), any())).thenReturn(List.of());
         when(inventoryService.getAll()).thenReturn(List.of());
 
         var response = service.get(requested);
