@@ -160,8 +160,22 @@ class PostgreSqlFlywayIntegrationTest {
                 """,
                 Integer.class
         );
+        Integer defaultInventoryCategoryCount = jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from inventory_categories
+                where lower(name) in (
+                    'insumos clínicos',
+                    'anestésicos y quirúrgicos',
+                    'material de restauración',
+                    'protección y esterilización',
+                    'ortodoncia e implantes'
+                )
+                """,
+                Integer.class
+        );
 
-        assertThat(appliedMigrations).isEqualTo(14);
+        assertThat(appliedMigrations).isEqualTo(15);
         assertThat(seededDoctors).isGreaterThanOrEqualTo(2);
         assertThat(inventoryColumns).isEqualTo(3);
         assertThat(stockMovementTables).isEqualTo(1);
@@ -173,6 +187,7 @@ class PostgreSqlFlywayIntegrationTest {
         assertThat(treatmentActiveColumns).isEqualTo(1);
         assertThat(userActivationColumns).isEqualTo(1);
         assertThat(defaultTreatmentCount).isEqualTo(8);
+        assertThat(defaultInventoryCategoryCount).isEqualTo(5);
 
         UUID categoryId = UUID.fromString("33333333-3333-3333-3333-333333333333");
         UUID productId = UUID.fromString("44444444-4444-4444-4444-444444444444");
