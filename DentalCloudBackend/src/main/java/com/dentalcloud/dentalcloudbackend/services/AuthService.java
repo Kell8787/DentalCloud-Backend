@@ -1,5 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.services;
 
+import com.dentalcloud.dentalcloudbackend.domain.dto.AccountActivationRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RegisterPatientRequestDTO;
@@ -10,6 +11,8 @@ import com.dentalcloud.dentalcloudbackend.domain.entity.User;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Parentesco;
 import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
+import com.dentalcloud.dentalcloudbackend.exceptions.ConflictException;
+import com.dentalcloud.dentalcloudbackend.exceptions.ResourceNotFoundException;
 import com.dentalcloud.dentalcloudbackend.repositories.ContactoEmergenciaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.InformacionMedicaRepository;
 import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
@@ -48,13 +51,13 @@ public class AuthService {
     @Transactional
     public String register(RegisterPatientRequestDTO request) {
         // Verificar si el usuario ya existe
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new EntityExistsException("El email ya está registrado");
-        }
+        userRepository.findByEmail(request.getEmail()).ifPresent(existing -> {
+            throw pendingActivationOrDuplicate(existing, "El email ya está registrado");
+        });
 
-        if (userRepository.existsByDui(request.getDui())) {
-            throw new EntityExistsException("El DUI ya está registrado");
-        }
+        userRepository.findByDui(request.getDui()).ifPresent(existing -> {
+            throw pendingActivationOrDuplicate(existing, "El DUI ya está registrado");
+        });
 
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new EntityExistsException("El número de teléfono ya está registrado");
@@ -141,6 +144,51 @@ public class AuthService {
                 .user(toUserResponse(user))
                 .message("Login exitoso")
                 .build();
+    }
+
+    /*
+        Activa el acceso web de un paciente dado de alta previamente por secretaría
+        (active=false) verificando DUI, email y fecha de nacimiento, y establece su
+        contraseña por primera vez.
+     */
+    @Transactional
+    public AuthResponseDTO activateAccount(AccountActivationRequestDTO request) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Las contraseñas no coinciden");
+        }
+
+        User user = userRepository.findByDui(request.getDui())
+                .filter(u -> u.getRole() == Rol.CUSTOMER)
+                .filter(u -> !u.isActive())
+                .filter(u -> u.getEmail().equalsIgnoreCase(request.getEmail()))
+                .filter(u -> u.getBirthDate().equals(request.getBirthDate()))
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No encontramos un expediente pendiente de activación con esos datos."));
+
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setActive(true);
+        User saved = userRepository.save(user);
+
+        String token = jwtService.generateToken(saved.getEmail());
+        log.info("Cuenta activada para: {}", saved.getEmail());
+
+        return AuthResponseDTO.builder()
+                .token(token)
+                .user(toUserResponse(saved))
+                .message("Cuenta activada exitosamente")
+                .build();
+    }
+
+    /*
+        Distingue entre un duplicado real y un expediente administrativo pendiente de
+        activación, para guiar al paciente al flujo correcto en /signup.
+     */
+    private RuntimeException pendingActivationOrDuplicate(User existing, String duplicateMessage) {
+        if (existing.getRole() == Rol.CUSTOMER && !existing.isActive()) {
+            return new ConflictException("PATIENT_RECORD_EXISTS",
+                    "Ya tienes un expediente registrado en la clínica. Activa tu cuenta para continuar.");
+        }
+        return new EntityExistsException(duplicateMessage);
     }
 
     @Transactional

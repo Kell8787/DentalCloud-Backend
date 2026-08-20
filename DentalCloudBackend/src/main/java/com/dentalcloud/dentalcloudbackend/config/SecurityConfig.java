@@ -52,7 +52,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Endpoints públicos
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/activate").permitAll()
                         // Validación de token
                         .requestMatchers("/api/auth/validate").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/documentos/*/contenido").permitAll()

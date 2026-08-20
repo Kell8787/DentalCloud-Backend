@@ -1,5 +1,6 @@
 package com.dentalcloud.dentalcloudbackend.controller;
 
+import com.dentalcloud.dentalcloudbackend.domain.dto.AccountActivationRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthResponseDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.AuthRequestDTO;
 import com.dentalcloud.dentalcloudbackend.domain.dto.RegisterPatientRequestDTO;
@@ -51,6 +52,19 @@ public class AuthController {
         log.info("Login iniciado para email: {}", request.getEmail());
         AuthResponseDTO response = authService.login(request);
         log.info("Login exitoso para usuario: {}", request.getEmail());
+        return ResponseEntity.ok(response);
+    }
+
+    /*
+     * Endpoint de "Primer acceso": activa la cuenta web de un paciente dado de alta
+     * por secretaría (active=false), verificando DUI + email + fecha de nacimiento
+     * y estableciendo su contraseña por primera vez.
+     */
+    @PostMapping("/activate")
+    public ResponseEntity<?> activate(@RequestBody @Valid AccountActivationRequestDTO request) {
+        log.info("Activación de cuenta iniciada para DUI: {}", request.getDui());
+        AuthResponseDTO response = authService.activateAccount(request);
+        log.info("Activación de cuenta exitosa");
         return ResponseEntity.ok(response);
     }
 
