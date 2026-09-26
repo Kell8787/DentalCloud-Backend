@@ -1,0 +1,104 @@
+package com.dentalcloud.dentalcloudbackend.config;
+
+import com.dentalcloud.dentalcloudbackend.domain.entity.User;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Genero;
+import com.dentalcloud.dentalcloudbackend.domain.enums.Rol;
+import com.dentalcloud.dentalcloudbackend.repositories.UserRepository;
+import com.dentalcloud.dentalcloudbackend.repositories.DentistRepository;
+import com.dentalcloud.dentalcloudbackend.domain.entity.Dentist;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class DataInitializer implements CommandLineRunner {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final DentistRepository dentistRepository;
+
+    @Override
+    public void run(String... args) {
+        crearAdmin();
+        crearDoctoresPrueba(); // TODO: eliminar cuando ya no se necesiten datos de prueba
+        sincronizarDentistas();
+    }
+
+    private void crearAdmin() {
+        String adminEmail = "admin@dentalcloud.com";
+
+        if (userRepository.findByEmail(adminEmail).isPresent()) {
+            log.info("Admin ya existe");
+            return;
+        }
+
+        User admin = User.builder()
+                .firstName("Admin")
+                .lastName("DentalCloud")
+                .direccion("San Salvador, El Salvador")
+                .genero(Genero.MASCULINO)
+                .dui("0000000000")
+                .birthDate(LocalDate.of(1990, 1, 1))
+                .email(adminEmail)
+                .password(passwordEncoder.encode("Admin123!"))
+                .phoneNumber("0000-0000")
+                .role(Rol.ADMIN)
+                .build();
+
+        userRepository.save(admin);
+        log.info("Admin creado por defecto");
+    }
+
+    // ====== DATOS DE PRUEBA — eliminar este metodo y su llamada en run() ======
+    private void crearDoctoresPrueba() {
+        crearDoctor("Carlos", "Martinez", "doctor1@dentalcloud.com", "1111111111", "1111-1111");
+        crearDoctor("Maria", "Lopez", "doctor2@dentalcloud.com", "2222222222", "2222-2222");
+    }
+
+    private void crearDoctor(String firstName, String lastName, String email, String dui, String phone) {
+        var existingDoctor = userRepository.findByEmail(email);
+        if (existingDoctor.isPresent()) {
+            ensureDentist(existingDoctor.get());
+            log.info("Doctor {} ya existe", email);
+            return;
+        }
+
+        User doctor = User.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .direccion("San Salvador, El Salvador")
+                .genero(Genero.MASCULINO)
+                .dui(dui)
+                .birthDate(LocalDate.of(1985, 6, 15))
+                .email(email)
+                .password(passwordEncoder.encode("Doctor123!"))
+                .phoneNumber(phone)
+                .role(Rol.DOCTOR)
+                .build();
+
+        User savedDoctor = userRepository.save(doctor);
+        ensureDentist(savedDoctor);
+        log.info("Doctor {} creado para pruebas", email);
+    }
+
+    private void ensureDentist(User doctor) {
+        if (dentistRepository.findByUser(doctor).isEmpty()) {
+            dentistRepository.save(Dentist.builder()
+                    .Name(doctor.getFirstName() + " " + doctor.getLastName())
+                    .user(doctor)
+                    .build());
+            log.info("Dentist asociado creado para {}", doctor.getEmail());
+        }
+    }
+
+    private void sincronizarDentistas() {
+        userRepository.findByRole(Rol.DOCTOR).forEach(this::ensureDentist);
+    }
+    // ====== FIN DATOS DE PRUEBA ======
+}

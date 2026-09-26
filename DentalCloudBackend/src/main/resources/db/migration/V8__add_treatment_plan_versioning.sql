@@ -1,0 +1,4 @@
+ALTER TABLE patient_treatment_plans
+    ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE treatment_steps
+    ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;

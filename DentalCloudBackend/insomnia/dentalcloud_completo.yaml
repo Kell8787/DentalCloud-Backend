@@ -1,0 +1,1339 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: DentalCloud - API Completa
+meta:
+  id: wrk_1495937a5f4348a19bfa33c82a92493d
+  created: 1774398371033
+  modified: 1774398371033
+  description: "Colección completa de endpoints: autenticación, perfil de paciente, citas e inventario."
+collection:
+
+  # ─────────────────────────────────────────
+  # 1. AUTENTICACIÓN
+  # ─────────────────────────────────────────
+  - name: Autenticación
+    meta:
+      id: fld_ba0377c3ab65463c8d827ef407418d63
+      created: 1774398371035
+      modified: 1774398371035
+      sortKey: -4000
+      description: "Registro, login y validación de tokens JWT."
+    children:
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: Registrar paciente (POST)
+        meta:
+          id: req_4ce5faa389e24b1196e42555a43859c1
+          created: 1774398438174
+          modified: 1774398452880
+          isPrivate: false
+          description: "Crea un nuevo usuario con rol CUSTOMER junto con su información médica y contacto de emergencia. Devuelve 200 OK con mensaje de confirmación."
+          sortKey: -4300
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Kelvin",
+              "secondName": "Rodrigo",
+              "lastName": "Iraheta",
+              "secondLastName": "Morales",
+              "genero": "MASCULINO",
+              "dui": "06466646-0",
+              "birthDate": "11-02-2003",
+              "email": "isiraheta55@outlook.com",
+              "password": "123456K",
+              "confirmPassword": "123456K",
+              "phoneNumber": "78804203",
+              "direccion": "San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Irma Morales",
+                "email": "irmix1978@gmail.com",
+                "phoneNumber": "72385234",
+                "parentesco": "MADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Penicilina", "Polvo"],
+                "medicamentos": ["Ibuprofeno"],
+                "antecedentesMedicos": "Asma leve"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 1] Registrar Ana Martinez (POST)"
+        meta:
+          id: req_mock_register_ana_001
+          created: 1750000000001
+          modified: 1750000000001
+          isPrivate: false
+          description: "Usuario mock para promover a DOCTOR y probar la vinculación automática con Dentist."
+          sortKey: -4290
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Ana",
+              "secondName": "Lucia",
+              "lastName": "Martinez",
+              "secondLastName": "Perez",
+              "genero": "FEMENINO",
+              "dui": "04521378-2",
+              "birthDate": "15-03-1990",
+              "email": "ana.martinez@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110001",
+              "direccion": "Colonia Escalon, San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Luis Martinez",
+                "email": "luis.martinez@dentaltest.com",
+                "phoneNumber": "71110011",
+                "parentesco": "PADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ninguna"],
+                "medicamentos": [],
+                "antecedentesMedicos": "Sin antecedentes relevantes"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 2] Registrar Carlos Rivas (POST)"
+        meta:
+          id: req_mock_register_carlos_002
+          created: 1750000000002
+          modified: 1750000000002
+          isPrivate: false
+          description: "Usuario mock paciente para probar creación y consulta de citas."
+          sortKey: -4280
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Carlos",
+              "secondName": "Eduardo",
+              "lastName": "Rivas",
+              "secondLastName": "Mendoza",
+              "genero": "MASCULINO",
+              "dui": "05632489-1",
+              "birthDate": "22-07-1995",
+              "email": "carlos.rivas@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110002",
+              "direccion": "Soyapango, San Salvador",
+              "contactoEmergencia": {
+                "nombreCompleto": "Rosa Mendoza",
+                "email": "rosa.mendoza@dentaltest.com",
+                "phoneNumber": "71110022",
+                "parentesco": "MADRE"
+              },
+              "informacionMedica": {
+                "alergias": ["Ibuprofeno"],
+                "medicamentos": ["Paracetamol"],
+                "antecedentesMedicos": "Alergia a antiinflamatorios"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/register"
+        name: "[MOCK 3] Registrar Maria Flores (POST)"
+        meta:
+          id: req_mock_register_maria_003
+          created: 1750000000003
+          modified: 1750000000003
+          isPrivate: false
+          description: "Usuario mock paciente adicional para pruebas de solapamiento de citas."
+          sortKey: -4270
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Maria",
+              "secondName": "Jose",
+              "lastName": "Flores",
+              "secondLastName": "Calderon",
+              "genero": "FEMENINO",
+              "dui": "07743560-3",
+              "birthDate": "08-11-1988",
+              "email": "maria.flores@dentaltest.com",
+              "password": "Test1234!",
+              "confirmPassword": "Test1234!",
+              "phoneNumber": "71110003",
+              "direccion": "Santa Tecla, La Libertad",
+              "contactoEmergencia": {
+                "nombreCompleto": "Pedro Calderon",
+                "email": "pedro.calderon@dentaltest.com",
+                "phoneNumber": "71110033",
+                "parentesco": "ESPOSO"
+              },
+              "informacionMedica": {
+                "alergias": ["Polen", "Polvo"],
+                "medicamentos": ["Loratadina"],
+                "antecedentesMedicos": "Rinitis alergica cronica"
+              }
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/login"
+        name: Login (POST)
+        meta:
+          id: req_7aa26b5272b34b089f82563cf17e6dae
+          created: 1774398371036
+          modified: 1774398371036
+          isPrivate: false
+          description: "Autentica al usuario y retorna el token JWT. Copia el token en la variable de entorno 'token'."
+          sortKey: -4200
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "{{ _.login_email }}",
+              "password": "{{ _.login_password }}"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: none
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/auth/validate"
+        name: Validar Token (GET)
+        meta:
+          id: req_validate_token_001
+          created: 1774398371037
+          modified: 1774398371037
+          isPrivate: false
+          description: "Verifica si el token JWT del header Authorization sigue siendo válido."
+          sortKey: -4100
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ─────────────────────────────────────────
+  # 2. PERFIL DE PACIENTE
+  # ─────────────────────────────────────────
+  - name: Perfil de Paciente
+    meta:
+      id: fld_patients_module_folder_001
+      created: 1774398371050
+      modified: 1774398371050
+      sortKey: -3000
+      description: "Gestión del perfil personal, contacto de emergencia e información médica del paciente autenticado."
+    children:
+      - url: "{{ _.base_url }}/api/patients"
+        name: Listar todos los pacientes (GET)
+        meta:
+          id: req_patients_list_001
+          created: 1750200000001
+          modified: 1750200000001
+          isPrivate: false
+          description: "Retorna todos los usuarios con rol CUSTOMER. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con lista de UserResponseDTO."
+          sortKey: -3700
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients?search={{ _.patient_search }}"
+        name: Buscar pacientes por nombre / DUI / teléfono (GET)
+        meta:
+          id: req_patients_search_001
+          created: 1750200000002
+          modified: 1750200000002
+          isPrivate: false
+          description: "Filtra pacientes (rol CUSTOMER) por nombre completo, DUI o teléfono. Búsqueda case-insensitive y parcial. Roles permitidos: DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -3650
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/profile"
+        name: Ver perfil (GET)
+        meta:
+          id: req_patients_get_profile_001
+          created: 1774398371051
+          modified: 1774398371051
+          isPrivate: false
+          description: "Retorna los datos personales del usuario autenticado (200 OK)."
+          sortKey: -3600
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/profile"
+        name: Actualizar perfil (PUT)
+        meta:
+          id: req_patients_put_profile_001
+          created: 1774398371052
+          modified: 1774398371052
+          isPrivate: false
+          description: "Actualiza parcialmente los datos personales del usuario autenticado. Solo se modifican los campos enviados (no nulos). Devuelve 200 OK con el perfil actualizado."
+          sortKey: -3500
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "firstName": "Kelvin",
+              "lastName": "Iraheta",
+              "direccion": "Ciudad Delgado",
+              "phoneNumber": "78804203"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/emergency-contact"
+        name: Ver contacto de emergencia (GET)
+        meta:
+          id: req_patients_get_emergency_001
+          created: 1774398371053
+          modified: 1774398371053
+          isPrivate: false
+          description: "Retorna el contacto de emergencia registrado del usuario autenticado (200 OK)."
+          sortKey: -3400
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/emergency-contact"
+        name: Actualizar contacto de emergencia (PUT)
+        meta:
+          id: req_patients_put_emergency_001
+          created: 1774398371054
+          modified: 1774398371054
+          isPrivate: false
+          description: "Actualiza parcialmente el contacto de emergencia. Solo se modifican los campos enviados (no nulos). Devuelve 204 No Content."
+          sortKey: -3300
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "nombreCompleto": "Irma Morales",
+              "email": "irmix1978@gmail.com",
+              "phoneNumber": "72385234",
+              "parentesco": "MADRE"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/medical-info"
+        name: Ver información médica (GET)
+        meta:
+          id: req_patients_get_medical_001
+          created: 1774398371055
+          modified: 1774398371055
+          isPrivate: false
+          description: "Retorna las alergias, medicamentos y antecedentes médicos del usuario autenticado (200 OK)."
+          sortKey: -3200
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/medical-info"
+        name: Actualizar información médica (PUT)
+        meta:
+          id: req_patients_put_medical_001
+          created: 1774398371056
+          modified: 1774398371056
+          isPrivate: false
+          description: "Actualiza parcialmente la información médica. Solo se reemplazan los campos enviados (no nulos). Devuelve 200 OK con la información actualizada."
+          sortKey: -3100
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "alergias": ["Penicilina", "Polvo", "Ácaros"],
+              "medicamentos": ["Ibuprofeno", "Loratadina"],
+              "antecedentesMedicos": "Asma leve diagnosticada en 2018. Sin cirugías previas."
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/medical-info/email?email={{ _.patient_email_query }}"
+        name: Ver información médica por email (GET)
+        meta:
+          id: req_patients_get_medical_by_email_001
+          created: 1774398371057
+          modified: 1774398371057
+          isPrivate: false
+          description: "Retorna la información médica de un paciente buscado por correo. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con InformacionMedicaDTO."
+          sortKey: -3050
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/patients/medical-info/email?email={{ _.patient_email_query }}"
+        name: Actualizar información médica por email (PUT)
+        meta:
+          id: req_patients_put_medical_by_email_001
+          created: 1774398371058
+          modified: 1774398371058
+          isPrivate: false
+          description: "Actualiza parcialmente la información médica de un paciente buscado por correo. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con la información actualizada."
+          sortKey: -3000
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "alergias": ["Penicilina", "Polvo", "Ácaros"],
+              "medicamentos": ["Ibuprofeno", "Loratadina"],
+              "antecedentesMedicos": "Asma leve diagnosticada en 2018. Sin cirugías previas."
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ─────────────────────────────────────────
+  # 3. USUARIOS
+  # ─────────────────────────────────────────
+  - name: Usuarios
+    meta:
+      id: fld_users_module_folder_001
+      created: 1774398371060
+      modified: 1774398371060
+      sortKey: -2500
+      description: "Consulta de doctores y gestión de roles de usuario."
+    children:
+      - url: "{{ _.base_url }}/api/users/doctors"
+        name: Listar doctores (GET)
+        meta:
+          id: req_users_get_doctors_001
+          created: 1774398371061
+          modified: 1774398371061
+          isPrivate: false
+          description: "Retorna todos los usuarios con rol DOCTOR. Requiere autenticación (cualquier rol)."
+          sortKey: -2520
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/users/{{ _.user_id_cambiar_rol }}/rol"
+        name: Cambiar rol de usuario (PATCH)
+        meta:
+          id: req_users_patch_rol_001
+          created: 1774398371062
+          modified: 1774398371062
+          isPrivate: false
+          description: "Cambia el rol de un usuario dado su UUID. Roles permitidos: ADMIN, DOCTOR. Valores posibles para nuevoRol: CUSTOMER, DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -2510
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "nuevoRol": "DOCTOR"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ─────────────────────────────────────────
+  # 4. CITAS
+  # ─────────────────────────────────────────
+  - name: Citas
+    meta:
+      id: fld_citas_module_folder_001
+      created: 1774398371042
+      modified: 1774398371042
+      sortKey: -2000
+      description: "Reserva de horarios, consulta de slots disponibles y gestión de estados (aprobar / rechazar / cancelar)."
+    children:
+      - url: "{{ _.base_url }}/api/citas/mis-citas"
+        name: Mis citas — paciente autenticado (GET)
+        meta:
+          id: req_citas_mis_citas_001
+          created: 1750000000004
+          modified: 1750000000004
+          isPrivate: false
+          description: "Retorna todas las citas del paciente autenticado. Usar con token del paciente (CUSTOMER). Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2550
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/mi-agenda"
+        name: Mi agenda — doctor autenticado (GET)
+        meta:
+          id: req_citas_mi_agenda_001
+          created: 1750100000001
+          modified: 1750100000001
+          isPrivate: false
+          description: "Retorna todas las citas asignadas al doctor autenticado. Requiere token con rol DOCTOR. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2548
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/mi-agenda?fecha={{ _.agenda_fecha }}"
+        name: Mi agenda por fecha — doctor autenticado (GET)
+        meta:
+          id: req_citas_mi_agenda_fecha_001
+          created: 1750100000002
+          modified: 1750100000002
+          isPrivate: false
+          description: "Retorna las citas del doctor autenticado filtradas por fecha (yyyy-MM-dd). Requiere token con rol DOCTOR. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2546
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}"
+        name: Editar cita (PUT)
+        meta:
+          id: req_citas_editar_001
+          created: 1750300000001
+          modified: 1750300000001
+          isPrivate: false
+          description: "Edita una cita en estado PENDIENTE. Todos los campos son opcionales (null = conserva el valor actual). CUSTOMER solo puede editar sus propias citas; staff puede editar cualquiera. Devuelve 200 OK con CitaResponseDTO actualizado."
+          sortKey: -2544
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "dentistaId": "{{ _.dentista_id }}",
+              "tratamientoId": "{{ _.tratamiento_id }}",
+              "fecha": "2026-06-25",
+              "horaInicio": "10:00",
+              "motivo": "Revisión actualizada"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}"
+        name: Eliminar cita pendiente (DELETE)
+        meta:
+          id: req_citas_eliminar_001
+          created: 1750300000002
+          modified: 1750300000002
+          isPrivate: false
+          description: "Soft delete de una cita en estado PENDIENTE — pasa a ELIMINADA. Solo el dueño (CUSTOMER) puede ejecutarlo. Devuelve 204 No Content."
+          sortKey: -2542
+        method: DELETE
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas"
+        name: Listar todas las citas — admin (GET)
+        meta:
+          id: req_citas_listar_admin_001
+          created: 1750000000005
+          modified: 1750000000005
+          isPrivate: false
+          description: "Retorna todas las citas del sistema. Roles permitidos: DOCTOR, SECRETARIA, ADMIN. Devuelve 200 OK con lista de CitaResponseDTO."
+          sortKey: -2540
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/slots-disponibles?fecha=2026-06-22&tratamientoId={{ _.tratamiento_id }}"
+        name: Consultar slots disponibles (GET)
+        meta:
+          id: req_citas_slots_001
+          created: 1774398371044
+          modified: 1774398371044
+          isPrivate: false
+          description: "Lista los horarios libres para una fecha y tratamiento dados. Úsalo antes de crear una cita. Devuelve 200 OK con lista de SlotDisponibleDTO."
+          sortKey: -2500
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas"
+        name: Crear cita (POST)
+        meta:
+          id: req_citas_crear_001
+          created: 1774398371043
+          modified: 1774398371043
+          isPrivate: false
+          description: "Crea una nueva cita. Valida horario laboral, solapamiento y días hábiles. Devuelve 201 Created con CitaResponseDTO."
+          sortKey: -2400
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "pacienteId": "{{ _.paciente_id }}",
+              "dentistaId": "{{ _.dentista_id }}",
+              "tratamientoId": "{{ _.tratamiento_id }}",
+              "fecha": "2026-06-22",
+              "horaInicio": "09:00",
+              "motivo": "Limpieza de rutina"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}/aprobar"
+        name: Aprobar cita (PATCH)
+        meta:
+          id: req_citas_aprobar_001
+          created: 1774398371045
+          modified: 1774398371045
+          isPrivate: false
+          description: "Cambia el estado de una cita de PENDIENTE a CONFIRMADA. Roles permitidos: DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -2300
+        method: PATCH
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}/rechazar"
+        name: Rechazar cita (PATCH)
+        meta:
+          id: req_citas_rechazar_001
+          created: 1774398371046
+          modified: 1774398371046
+          isPrivate: false
+          description: "Cambia el estado de una cita de PENDIENTE a CANCELADA con un motivo opcional. Roles permitidos: DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -2200
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "motivo": "El dentista no está disponible ese día"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/{{ _.cita_id }}/cancelar"
+        name: Cancelar cita propia (PATCH)
+        meta:
+          id: req_citas_cancelar_001
+          created: 1774398371047
+          modified: 1774398371047
+          isPrivate: false
+          description: "El paciente cancela su propia cita (PENDIENTE o CONFIRMADA). Requiere más de 24 h de anticipación. motivoCancelacion es obligatorio y debe ser uno de los valores devueltos por GET /api/citas/motivos-cancelacion. Roles: CUSTOMER, DOCTOR, SECRETARIA, ADMIN."
+          sortKey: -2100
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "motivoCancelacion": "EMERGENCIA"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/citas/motivos-cancelacion"
+        name: Listar motivos de cancelación (GET)
+        meta:
+          id: req_citas_motivos_cancelacion_001
+          created: 1774398371048
+          modified: 1774398371048
+          isPrivate: false
+          description: "Retorna la lista de motivos válidos para cancelar una cita (enum MotivoCancelacion), pensada para poblar el selector del frontend. Devuelve 200 OK con un array de strings, ej. [\"EMERGENCIA\", \"CONFLICTO_HORARIO\", \"VIAJE\", \"ERROR_AL_AGENDAR\", \"PROBLEMAS_SALUD\"]."
+          sortKey: -2090
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # ─────────────────────────────────────────
+  # 5. INVENTARIO
+  # ─────────────────────────────────────────
+  - name: Inventario
+    meta:
+      id: fld_69afc41edc3a43c8a19f3f7c2ec96c19
+      created: 1774398371037
+      modified: 1774398371037
+      sortKey: -1000
+      description: "CRUD de productos y categorías. Soft delete en eliminación. Operaciones de compra y venta de stock."
+    children:
+      # — Categorías —
+      - url: "{{ _.base_url }}/api/inventory/categories"
+        name: Listar todas las categorías (GET)
+        meta:
+          id: req_5a1c0e4b0ad84df98d6667515a97a4f2
+          created: 1774398371039
+          modified: 1774398371039
+          isPrivate: false
+          description: "Devuelve la lista completa de categorías de inventario (200 OK)."
+          sortKey: -1900
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/category"
+        name: Crear categoría (POST)
+        meta:
+          id: req_4ee2c9ae9f2b473280a86d9cd32b610f
+          created: 1774398371039
+          modified: 1774399979469
+          isPrivate: false
+          description: "Crea una nueva categoría de inventario. Devuelve 201 Created con CategoryResponseDTO."
+          sortKey: -1800
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "Materiales Desechables"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      # — Productos —
+      - url: "{{ _.base_url }}/api/inventory"
+        name: Listar todos los productos (GET)
+        meta:
+          id: req_48945edbb3b149cfb6e7213d30e34be8
+          created: 1774398371037
+          modified: 1774398371037
+          isPrivate: false
+          description: "Devuelve todos los productos activos (deleted=false). Admite filtros opcionales ?categoryName= y ?name= combinables."
+          sortKey: -1700
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory?categoryName={{ _.category_name_search }}"
+        name: Buscar productos por categoría (GET)
+        meta:
+          id: req_52b29b2e0eaa40878e74a9dd894d5c7d
+          created: 1774398371038
+          modified: 1774400127676
+          isPrivate: false
+          description: "Filtra productos cuya categoría coincida (ILIKE) con el valor de la variable 'category_name_search'."
+          sortKey: -1650
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory?name={{ _.product_name_search }}"
+        name: Buscar productos por nombre (GET)
+        meta:
+          id: req_711887e0e5534d6e86aa8874afbe5187
+          created: 1774398371038
+          modified: 1774400168872
+          isPrivate: false
+          description: "Filtra productos cuyo nombre contenga (ILIKE) el valor de la variable 'product_name_search'."
+          sortKey: -1640
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/category/{{ _.category_id }}"
+        name: Productos por categoría ID (GET)
+        meta:
+          id: req_dfd512a4d7574870b8f42811691551c7
+          created: 1774398371039
+          modified: 1774398371039
+          isPrivate: false
+          description: "Lista los productos activos que pertenecen a la categoría indicada por UUID."
+          sortKey: -1630
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}"
+        name: Detalle producto por ID (GET)
+        meta:
+          id: req_dad4393c9bef4aef896814aae11a17a4
+          created: 1774398371038
+          modified: 1774398371038
+          isPrivate: false
+          description: "Retorna un producto activo por su UUID. Lanza 404 si no existe o está eliminado."
+          sortKey: -1600
+        method: GET
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory"
+        name: Crear producto (POST)
+        meta:
+          id: req_765a53baebc7493188479e0d1c106f06
+          created: 1774398371040
+          modified: 1774400083110
+          isPrivate: false
+          description: "Crea un nuevo producto en inventario. Devuelve 201 Created con InventoryResponseDTO."
+          sortKey: -1500
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "Guantes de Látex",
+              "description": "Caja de guantes de látex desechables de 100 unidades",
+              "purchasePrice": 10.50,
+              "salePrice": 25.00,
+              "categoryId": "{{ _.category_id }}",
+              "quantity": 20
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}"
+        name: Editar producto (PUT)
+        meta:
+          id: req_ce3844f022ad4f52959fbf0b79da6d0a
+          created: 1774398371040
+          modified: 1774398591128
+          isPrivate: false
+          description: "Actualiza todos los campos de un producto existente. Devuelve 200 OK con el producto actualizado."
+          sortKey: -1400
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "Guantes de Látex Premium",
+              "description": "Caja de guantes de látex desechables de 100 unidades — talla M",
+              "purchasePrice": 12.00,
+              "salePrice": 28.00,
+              "categoryId": "{{ _.category_id }}",
+              "quantity": 35
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}/purchase"
+        name: Compra — sumar stock (PUT)
+        meta:
+          id: req_f638c2e0f81642f7b93d094e29678505
+          created: 1774398371041
+          modified: 1774398371041
+          isPrivate: false
+          description: "Incrementa la cantidad en inventario del producto (simula una entrada por compra)."
+          sortKey: -1300
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "quantity": 10
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}/sale"
+        name: Venta — restar stock (PUT)
+        meta:
+          id: req_4c087c1f524e45bc8a7b7e95d05679d4
+          created: 1774398371041
+          modified: 1774398371041
+          isPrivate: false
+          description: "Decrementa la cantidad en inventario. Valida stock suficiente antes de descontar. Lanza 422 si no hay suficiente."
+          sortKey: -1200
+        method: PUT
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "quantity": 3
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.base_url }}/api/inventory/{{ _.product_id }}"
+        name: Eliminar producto — soft delete (DELETE)
+        meta:
+          id: req_5cf2e9b606b24979b7ab0059d3ff2615
+          created: 1774398371041
+          modified: 1774398371041
+          isPrivate: false
+          description: "Marca el producto como eliminado (deleted=true). No borra el registro físicamente. Devuelve 204 No Content."
+          sortKey: -1100
+        method: DELETE
+        authentication:
+          type: bearer
+          token: "{{ _.token }}"
+          prefix: Bearer
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_90be2de1df08e66c5d1bb459ded3be7299be2c69
+    created: 1774398371168
+    modified: 1774398371168
+
+environments:
+  name: Base
+  meta:
+    id: env_049186b342f44360927bd6d9cfabacc4
+    created: 1774398371034
+    modified: 1774398371034
+    isPrivate: false
+  data:
+    base_url: http://localhost:8080
+    # ── Auth ──────────────────────────────
+    login_email: isiraheta55@outlook.com
+    login_password: "123456K"
+    token: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpc2lyYWhldGE1NUBvdXRsb29rLmNvbSIsImlhdCI6MTc3OTkyMTYwMiwiZXhwIjoxNzgxMjE3NjAyfQ.PcDXCefWL2m_42cDOga7bpZW1ucrAxx2CXTRmiijA0bOp9-jOfWWUZSivGFtjjvZxQhP9OdIQ41pUJPXQj3DkQ"
+    # ── Paciente / Citas ──────────────────
+    patient_email_query: "isiraheta55@outlook.com"
+    patient_search: "María"
+    paciente_id: "0f9e0de5-56c8-4a24-b1f8-ee8953d3315b"
+    dentista_id: "63aaa696-e0ca-47f6-ae09-df54c35bd00b"
+    tratamiento_id: "035060cc-913f-4603-b60c-71f7755fc304"
+    cita_id: "73167715-7913-4e67-8d52-ba81cdc33538"
+    agenda_fecha: "2026-06-24"
+    # ── Usuarios ──────────────────────────
+    user_id_cambiar_rol: "CAMBIAR_POR_UUID_USUARIO"
+    # ── Inventario ────────────────────────
+    product_id: "CAMBIAR_POR_UUID_PRODUCTO"
+    category_id: "CAMBIAR_POR_UUID_CATEGORIA"
+    category_name_search: "Materiales"
+    product_name_search: "Guantes"
